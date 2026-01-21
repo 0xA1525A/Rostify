@@ -30,5 +30,5 @@ g++ -o ./app/rostify \
     -Wl,-z,now \
     -Wl,-z,noexecstack \
     -fvisibility=hidden \
-    ./src/rf_io.cpp \
+    ./src/libs/rf_io.cpp \
     ./src/rostify.cpp
