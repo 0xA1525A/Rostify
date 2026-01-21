@@ -1,0 +1,9 @@
++- WARNING ----------------- +
+| TEMPLATE FOR MISSING FILES |
++ -------------------------- +
+
+Do not touch anything in this directory.
+or else.
+
+You have been warned.
+Or maybe, do it? I don't give a fuck.
