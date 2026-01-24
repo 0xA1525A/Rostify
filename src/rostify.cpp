@@ -12,6 +12,5 @@
 #include "libs/rf_io.hpp"
 
 int main(void) {
-    rf_io::out::print<RfIO_PrintMethod::INFO>("HELLO WORLD!\n");
-    rf_io::out::print<RfIO_PrintMethod::CONTEXT>("Yahoo!\n");
+    rf_io::out::print<RfIO_MessageType::PROCESS>("INTITIALISING ROSTIFY...\n");
 }
