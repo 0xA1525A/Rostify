@@ -10,7 +10,7 @@ namespace rf_fs {
     bool        write(const std::filesystem::path& path, const std::string_view data) noexcept;
     bool        append(const std::filesystem::path& path, const std::string_view data) noexcept;
     bool        move(const std::filesystem::path& path_old, const std::filesystem::path& path_new) noexcept;
-    bool        copy(const std::filesystem::path& path_from, const std::filesystem::path& path_to) noexcept
+    bool        copy(const std::filesystem::path& path_from, const std::filesystem::path& path_to) noexcept;
 
     namespace info {
         bool is_exists(const std::filesystem::path& path) noexcept;
