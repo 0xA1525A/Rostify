@@ -9,11 +9,12 @@ enum class RfIO_MessageType : std::uint8_t {
     PROCESS  = 3,
     WARNING  = 4,
     ERROR    = 5,
-    CONTEXT  = 6
+    CONTEXT  = 6,
+    NONE     = 7
 };
 
-constexpr const char* const RFIO_MESSAGE_TYPE_PREFIXES[8] = {
-    "[d]", ">>>", "[i]", "[/]", " **", "[!]", " : ", "   "
+constexpr const char* const RFIO_MESSAGE_TYPE_PREFIXES[9] = {
+    "[d] ", ">>> ", "[i] ", "[/] ", " ** ", "[!] ", " :  ", "", "    "
 };
 
 namespace rf_io {
@@ -30,7 +31,7 @@ namespace rf_io {
         template<RfIO_MessageType message_type, typename... RfIO_FormatArgs>
         void print(const char* message, const RfIO_FormatArgs... args) noexcept {
             constexpr const char* prefix = _get_prefix<message_type>();
-            std::printf("%s ", prefix);
+            std::printf("%s", prefix);
             
             if constexpr (sizeof...(RfIO_FormatArgs) == 0) [[likely]]
                 std::printf("%s", message);

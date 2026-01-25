@@ -6,10 +6,7 @@
 #include "rf_io.hpp"
 
 namespace rf_io {
-    namespace in {
-        
-    }
+    namespace in {}
 
-    namespace out {
-    }
+    namespace out {}
 }
