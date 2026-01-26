@@ -12,11 +12,5 @@
 #include "libs/rf_fs.hpp"
 
 int main(/*int argc, char* argv[]*/ void) {
-    std::string file_a_content = rf_fs::read("./src/templates/databases/staff_roles.sql");
-    rf_io::out::print<RfIO_MessageType::NONE>(file_a_content.c_str());
-    rf_fs::create::file("test");
-    rf_fs::write("test", file_a_content);
-    rf_fs::append("test", "hi");
-    rf_fs::append("test", "\nhello");
-
+    rf_io::out::prompt<RfIO_PromptType::NORMAL>("test?");
 }
