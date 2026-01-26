@@ -12,5 +12,5 @@
 #include "libs/rf_fs.hpp"
 
 int main(/*int argc, char* argv[]*/ void) {
-    rf_io::out::prompt<RfIO_PromptType::NORMAL>("test?");
+    rf_io::out::prompt<RfIO_PromptType::BOOLEAN>("Test?", "Agree", "Not Agree");
 }

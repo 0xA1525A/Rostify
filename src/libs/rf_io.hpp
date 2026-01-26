@@ -56,12 +56,13 @@ namespace rf_io {
         template<RfIO_MessageType message_type, typename... RfIO_FormatArgs>
         void print(const char* message, const RfIO_FormatArgs... args) noexcept {
             constexpr const char* prefix = _get_prefix<message_type>();
-            std::printf("%s", prefix);
+            std::printf("%s", std::format("{}", prefix).c_str());
 
             if constexpr (sizeof...(RfIO_FormatArgs) == 0)
                 std::printf("%s", message);
-            else
-                std::printf(message, args...);
+            else {;
+                std::printf("%s", std::vformat(message, std::make_format_args(args...)).c_str());
+            }
 
             std::fflush(stdout);
         }
@@ -69,15 +70,15 @@ namespace rf_io {
         template<RfIO_PromptType prompt_type, typename... RfIO_FormatArgs>
         void prompt(const char* message, const RfIO_FormatArgs... args) noexcept {
             constexpr const char* prompt_sign = _get_prompt_sign<prompt_type>();
-            
+
             const std::size_t message_length = std::strlen(message);
             std::string formatted_message;
             if (message[std::max(static_cast<std::size_t>(0), message_length - 1)] == '\n')
                 formatted_message = std::format("{}    {}", message, prompt_sign);
             else
                 formatted_message = std::format("{}\n    {}", message, prompt_sign);
-                
-            rf_io::out::print<RfIO_MessageType::QUESTION>(formatted_message.c_str(), std::forward<RfIO_FormatArgs>(args)...);
+
+            rf_io::out::print<RfIO_MessageType::QUESTION>(formatted_message.c_str(), args...);
             std::fflush(stdout);
         }
     }
