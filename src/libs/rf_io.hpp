@@ -60,7 +60,7 @@ namespace rf_io {
 
             if constexpr (sizeof...(RfIO_FormatArgs) == 0)
                 std::printf("%s", message);
-            else {;
+            else {
                 std::printf("%s", std::vformat(message, std::make_format_args(args...)).c_str());
             }
 
