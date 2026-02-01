@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "backend/rostify-core",
+  "backend/rostify-utils",
+  "frontend/rostify-cli",
+]
+
+resolver = "2"

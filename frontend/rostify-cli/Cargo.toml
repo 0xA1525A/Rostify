@@ -1,0 +1,8 @@
+[package]
+name = "rostify-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rostify-core = { path = "../../backend/rostify-core" }
+rostify-utils = { path = "../../backend/rostify-utils", optional = true }
