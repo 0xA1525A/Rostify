@@ -13,6 +13,9 @@ dependencies = [
 [[package]]
 name = "rostify-core"
 version = "0.1.0"
+dependencies = [
+ "rostify-utils",
+]
 
 [[package]]
 name = "rostify-utils"

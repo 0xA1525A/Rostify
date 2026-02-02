@@ -1,3 +1,10 @@
 fn main() -> () {
-    println!("Greetings from Rostify!");
+    match rostify_core::initialise() {
+        Ok(_) => {
+            
+        }
+        Err(_) => {
+            println!("TEST!");
+        }
+    };
 }

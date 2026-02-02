@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 rostify-core = { path = "../../backend/rostify-core" }
-rostify-utils = { path = "../../backend/rostify-utils", optional = true }
+rostify-utils = { path = "../../backend/rostify-utils" }
