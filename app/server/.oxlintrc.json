@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error",
+    "nursery": "error"
+  },
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "rules": {
+    "typescript/explicit-function-return-type": [
+      "error",
+      {
+        "allowExpressions": false,
+        "allowTypedFunctionExpressions": false,
+        "allowHigherOrderFunctions": false,
+        "allowDirectConstAssertionInArrowFunctions": false,
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": false,
+        "allowFunctionsWithoutTypeParameters": false,
+        "allowIIFEs": false
+      }
+    ],
+    "typescript/explicit-module-boundary-types": [
+      "error",
+      {
+        "allowArgumentsExplicitlyTypedAsAny": false,
+        "allowTypedFunctionExpressions": false,
+        "allowHigherOrderFunctions": false,
+        "allowDirectConstAssertionInArrowFunctions": false
+      }
+    ],
+    "typescript/no-inferrable-types": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/strict-boolean-expressions": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "no-unused-vars": "error",
+    "no-unreachable": "error",
+    "no-fallthrough": "error",
+    "no-debugger": "error",
+    "no-console": "off"
+  }
+}

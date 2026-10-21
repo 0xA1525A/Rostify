@@ -1,0 +1,92 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Rust
+target/
+**/target/
+
+# Node / Bun
+node_modules/
+**/node_modules/
+
+# Frontend build
+dist/
+**/dist/
+.vite/
+**/.vite/
+
+# Bun
+.bun/
+**/.bun/
+
+# Logs
+*.log
+!logs/
+**/logs/*.log
+!**/logs/
+
+# Coverage
+coverage/
+**/coverage/
+.nyc_output/
+**/.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*~
+
+# Editors / IDEs
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+**/.idea/
+*.iml
+.vs/
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+Desktop.ini
+.directory
+.Trash-*
+
+# TypeScript
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# ESLint
+.eslintcache
+**/.eslintcache
+
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# PostgreSQL dumps
+*.dump
+*.backup
+
+# Docker local files
+docker-compose.override.yml
+.docker/
+
+# Generated files
+*.generated
+*.generated.*
+
+# Scratch / temporary directories
+scratch/
+tmp/
+temp/
