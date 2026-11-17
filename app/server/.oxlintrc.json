@@ -1,0 +1,111 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn", "import", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error",
+    "nursery": "off"
+  },
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-enum-comparison": "error",
+    "typescript/no-unsafe-unary-minus": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    // "typescript/ban-ts-comment": [
+    //   "error",
+    //   {
+    //     "ts-expect-error": "allow-with-description",
+    //     "ts-ignore": true,
+    //     "ts-nocheck": true,
+    //     "ts-check": false,
+    //     "minimumDescriptionLength": 10
+    //   }
+    // ],
+
+    "typescript/explicit-function-return-type": [
+      "error",
+      {
+        "allowExpressions": false,
+        "allowTypedFunctionExpressions": false,
+        "allowHigherOrderFunctions": false,
+        "allowDirectConstAssertionInArrowFunctions": false,
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": false,
+        "allowFunctionsWithoutTypeParameters": false,
+        "allowIIFEs": false
+      }
+    ],
+    "typescript/explicit-module-boundary-types": [
+      "error",
+      {
+        "allowArgumentsExplicitlyTypedAsAny": false,
+        "allowTypedFunctionExpressions": false,
+        "allowHigherOrderFunctions": false,
+        "allowDirectConstAssertionInArrowFunctions": false
+      }
+    ],
+    "typescript/no-inferrable-types": "off",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "inline-type-imports"
+      }
+    ],
+    "typescript/prefer-readonly": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/require-await": "error",
+    "typescript/return-await": ["error", "always"],
+
+    "no-console": "off",
+    "no-ternary": "error",
+    "no-null": "off",
+    "no-undefined": "error",
+    "no-continue": "off",
+    "no-plusplus": "off",
+    "no-magic-numbers": "error",
+    "sort-imports": "error",
+    "sort-keys": "error",
+    "import/no-default-export": "error",
+    "import/prefer-default-export": "off",
+    "import/group-exports": "off",
+
+    "oxc/no-async-await": "off",
+    "eslint/func-style": "off",
+    "typescript/prefer-readonly-parameter-types": "off",
+    "typescript/array-type": "off",
+    "eslint/no-magic-numbers": "off",
+    "import/no-named-export": "off",
+    "eslint/max-params": "off",
+    "eslint/one-var": "off",
+    "eslint/sort-imports": "off",
+    "eslint/sort-keys": "off",
+    "eslint/id-length": "off",
+    "typescript/strict-boolean-expressions": "off",
+    "typescript/consistent-type-definitions": "off",
+    "unicorn/explicit-length-check": "off",
+
+    "no-unused-vars": "error",
+    "no-unreachable": "error",
+    "no-fallthrough": "error",
+    "no-debugger": "error"
+  },
+  "ignorePatterns": ["dist", "build", "node_modules", "*.gen.ts"]
+}

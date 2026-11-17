@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.50",
+  "scripts": {
+    "lint": "bunx oxlint --type-aware --deny-warnings",
+    "typecheck": "bunx tsc --noEmit",
+    "check": "bun run lint && bun run typecheck",
+    "proddev": "bun run check && bun --watch src/index.ts",
+    "dev": "bun --watch src/index.ts"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.2",
+    "@sinclair/typebox": "^0.34.52",
+    "bonjour-service": "^1.4.4",
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "oxlint": "^1.89.0",
+    "oxlint-tsgolint": "^7.0.2004"
+  },
+  "module": "src/index.js"
+}

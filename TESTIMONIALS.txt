@@ -1,0 +1,84 @@
+ROSTIFY — TESTIMONIALS
+======================
+
+NOTE: The quotes below are illustrative placeholders written to show tone and
+coverage (different industries and features). Replace them with real, verified
+quotes — and get permission from each person — before publishing them anywhere
+public.
+
+
+--------------------------------------------------------------------------------
+"Rostering used to eat my entire Sunday. With Rostify I build the week from
+staff availability and open shifts in about twenty minutes, and everyone sees
+their roster the moment I publish it."
+  — Amara N., Operations Manager, cafe group (3 locations)
+
+
+--------------------------------------------------------------------------------
+"We run 60+ staff across four units. Rostify's unit and position setup means I
+can copy a proven roster between sites instead of rebuilding it from scratch.
+The schedule preview alone has caught dozens of coverage gaps before they
+became call-outs."
+  — Daniel R., Regional Store Manager, retail
+
+
+--------------------------------------------------------------------------------
+"The availability and peer-preference features are the quiet heroes. People
+get shifts that suit them, so swap requests and no-shows dropped noticeably
+in the first month."
+  — Priya S., HR Coordinator, aged-care facility
+
+
+--------------------------------------------------------------------------------
+"Punch records line up with the roster, so payroll questions are a two-minute
+lookup instead of an afternoon of digging through paper timesheets."
+  — Marcus T., Finance Lead, hospitality group
+
+
+--------------------------------------------------------------------------------
+"As a head chef, I don't have time for a complicated tool. Rostify is one
+screen: who's on, which station, which tasks. New staff pick it up on their
+first shift without training."
+  — Elena V., Head Chef, restaurant
+
+
+--------------------------------------------------------------------------------
+"We needed something that handled tasks and positions, not just names in
+boxes. Rostify's task assignments mean opening and closing duties are owned by
+a specific person every day — no more 'I thought someone else did it.'"
+  — Tom H., Duty Manager, hotel
+
+
+--------------------------------------------------------------------------------
+"The API-first design was the deciding factor for us. Our internal dashboard
+reads roster and schedule data directly, so we didn't have to rip out our
+existing reporting."
+  — Kenji W., Software Engineer, logistics company
+
+
+--------------------------------------------------------------------------------
+"Rolling out Rostify across a 40-person team took an afternoon. Two weeks
+later, scheduling conflicts were effectively gone and my managers stopped
+texting me on their days off."
+  — Sofia L., General Manager, fitness studio
+
+
+--------------------------------------------------------------------------------
+WHAT CUSTOMERS HIGHLIGHT MOST
+  • Fast roster building from staff availability
+  • Clear daily view of who is on, where, and on what tasks
+  • Fewer conflicts, swaps, and no-shows
+  • Roster data that matches punch records for payroll
+  • Simple enough that new staff need no training
+
+
+--------------------------------------------------------------------------------
+SUGGESTED SHORT VERSIONS (for a landing page)
+
+  "Rostering in 20 minutes, not a whole Sunday." — Amara N., cafe group
+
+  "Coverage gaps caught before they become call-outs." — Daniel R., retail
+
+  "Shifts that suit people. Fewer swaps and no-shows." — Priya S., aged care
+
+  "One screen. No training needed." — Elena V., restaurant

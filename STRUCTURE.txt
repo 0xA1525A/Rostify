@@ -1,0 +1,29 @@
+Rostify/
+    app/
+        client/
+            documents/
+            logs/
+            public/
+            src/
+                routes/
+                app.tsx
+        database/
+            documents/
+            logs/
+            migrations/
+        server/
+            documents/
+            logs/
+            src/
+                data/
+                routes/
+                services/
+
+                libs/
+                engines/
+                models/
+
+                main.ts
+    dev/
+        documents/
+        scripts/

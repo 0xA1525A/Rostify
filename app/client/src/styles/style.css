@@ -1,0 +1,44 @@
+* {
+    position: relative;
+
+    box-sizing: border-box !important;
+
+    scroll-behavior: smooth !important;
+    scrollbar-width: none;
+
+    text-rendering : optimizeLegibility !important;
+    image-rendering: optimizeQuality    !important;
+    shape-rendering: geometricPrecision !important;
+
+    font-family: "Sarabun" !important;
+    outline: none;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    height: 100lvh !important;
+    width : 100lvw !important;
+}
+
+div#root {
+    background-color: oklch(93.2% 0.032 255.585) !important;
+
+    height: 100lvh !important;
+    width : 100lvw !important;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+a, button {
+    cursor: pointer !important;
+}
+
+@import "tailwindcss";
