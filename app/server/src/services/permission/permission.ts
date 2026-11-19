@@ -11,6 +11,11 @@ import type { StaffPrivilege } from "@model:staff";
 
 export type InAppPermission = StaffPrivilege | "anonymous";
 
+export type AccessPrincipal = {
+    id        : string,
+    privilege : StaffPrivilege
+};
+
 const PERMISSION_MAP: Record<InAppPermission, number> = {
     "admin"    : 5,
     "manager"  : 4,
@@ -19,15 +24,15 @@ const PERMISSION_MAP: Record<InAppPermission, number> = {
     "anonymous": 0
 };
 
-export async function validateAccessPermission(
+export async function getAccessPrincipal(
     sql             : SQL,
     headers         : any,
     minimumPrivilege: InAppPermission,
     allowSelf       : boolean,
     staffID         : Nullable<string> = null
-): Promise<Result<string>> {
+): Promise<Result<AccessPrincipal>> {
     if (minimumPrivilege === "anonymous") {
-        return new Result<string>(true, null);
+        return new Result<AccessPrincipal>(true, null);
     }
 
     let token: Nullable<string>;
@@ -44,7 +49,7 @@ export async function validateAccessPermission(
         }
     }
     catch (error: unknown) {
-        return new Result<string>(false, `Missing or invalid session token: ${ String(error) }.`);
+        return new Result<AccessPrincipal>(false, null);
     }
 
     type R = {
@@ -53,18 +58,36 @@ export async function validateAccessPermission(
     };
 
     const getPrincipalResult: Result<R>   = await getTokenPrincipalByToken(sql, token);
-    const principal         : Nullable<R> = getPrincipalResult.getData()
+    const principal         : Nullable<R> = getPrincipalResult.getData();
 
     if (!getPrincipalResult.isSuccess() || principal === null) {
-        return new Result<string>(false, "Unable to find token's owner's information.");
+        return new Result<AccessPrincipal>(false, null);
     }
 
     const requiredPermission: number = PERMISSION_MAP[minimumPrivilege];
     const tokensPermission  : number = PERMISSION_MAP[principal.privilege];
 
     if (!((allowSelf && (staffID === principal.id)) || tokensPermission >= requiredPermission)) {
-        return new Result<string>(false, "Permission error. You don't belong here. :(");
+        return new Result<AccessPrincipal>(false, null);
     }
 
-    return new Result<string>(true, null);
+    return new Result<AccessPrincipal>(true, principal);
+}
+
+export async function validateAccessPermission(
+    sql             : SQL,
+    headers         : any,
+    minimumPrivilege: InAppPermission,
+    allowSelf       : boolean,
+    staffID         : Nullable<string> = null
+): Promise<Result<string>> {
+    const principalResult: Result<AccessPrincipal> = await getAccessPrincipal(
+        sql,
+        headers,
+        minimumPrivilege,
+        allowSelf,
+        staffID
+    );
+
+    return new Result<string>(principalResult.isSuccess(), null);
 }

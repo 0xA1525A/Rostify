@@ -2,10 +2,13 @@ import { Elysia } from "elysia";
 
 import type { Fn } from "@lib:types/fn";
 import {
+    handleDeleteRosterByDate,
+    handleDeleteStaffRosterByDate,
     handleGenerateRoster,
     handleGetAllRosters,
     handleGetAllRostersOnDate,
-    handleGetStaffRosterOnDateByID
+    handleGetStaffRosterOnDateByID,
+    handleMoveStaffRoster
 } from "@service:business/rosters";
 
 type F = Fn<[unknown], unknown>;
@@ -16,4 +19,9 @@ export const rosterRoutes = new Elysia({ prefix: "/rosters" })
 
     .get("/", handleGetAllRosters as F)
     .get("/:date", handleGetAllRostersOnDate as F)
-    .get("/:date/:staffID", handleGetStaffRosterOnDateByID as F);
+    .get("/:date/:staffID", handleGetStaffRosterOnDateByID as F)
+
+    .patch("/:date/:staffID", handleMoveStaffRoster as F)
+
+    .delete("/:date", handleDeleteRosterByDate as F)
+    .delete("/:date/:staffID", handleDeleteStaffRosterByDate as F);

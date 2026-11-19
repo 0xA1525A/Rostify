@@ -386,22 +386,22 @@ export async function getDailyRosterByDate(
         (
                 SELECT  p.unit_id
 
-                FROM    staff_positions AS sp
-                JOIN    positions       AS p
+                FROM    schedule_positions  AS sp
+                JOIN    positions           AS p
                 ON      sp.position_id = p.id
 
-                WHERE   sp.staff_id = r.staff_id
+                WHERE   sp.roster_record_id = r.id
+                AND     sp.position_id IS NOT NULL
 
                 ORDER BY
-                        sp.preference   DESC,
-                        sp.proficiency  DESC,
-                        p.id            ASC
+                        sp.date_time ASC,
+                        p.id         ASC
 
                 LIMIT   1
-        ) AS primary_position ON TRUE
+        ) AS scheduled_position ON TRUE
 
         LEFT JOIN units AS u
-        ON      primary_position.unit_id = u.id
+        ON      scheduled_position.unit_id = u.id
 
         WHERE   r.date = ${ date }
 
@@ -458,6 +458,25 @@ export async function deleteRosterPunchesByDate(sql: SQL, date: string): Promise
 
         WHERE   p.roster_record_id = r.id
         AND     r.date = ${ date }
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function deleteRosterPunchesByRosterRecordID(
+    sql: SQL,
+    rosterRecordID: number
+): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                roster_punches
+
+        WHERE   roster_record_id = ${ rosterRecordID }
 
         RETURNING
                 1 AS "_"

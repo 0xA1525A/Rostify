@@ -104,7 +104,7 @@ function pushPunch(
     punches.push({ recordKey: recordKey, dateTime: dateTime, clockEvent: clockEvent });
 }
 
-function planPunches(
+export function planPunches(
     recordKey: string,
     date: string,
     shift: Shift,

@@ -4,24 +4,25 @@ import { Result } from "@lib:templates/result";
 import type { ServiceDependencies } from "@lib:templates/service_deps";
 import type { Nullable } from "@lib:types/nullable";
 
-import { validateAccessPermission } from "@service:permission/permission";
+import {
+    getAccessPrincipal,
+    validateAccessPermission,
+    type AccessPrincipal
+} from "@service:permission/permission";
+import { checkDateAccess, type RosterDateAction } from "@service:permission/date_access";
 
 import {
     getAllRosterRecords,
     getRosterRecordByDateAndStaffID,
-    getRosterRecordByID,
     getRosterRecordsByDate,
     getRosterRecordsByStaffID
 } from "@data:rosters";
 import {
     createSchedulePosition,
     createScheduleTask,
-    deleteAllSchedules,
     deleteScheduleByDateAndStaffID,
     deleteSchedulePositionsByDate,
     deleteScheduleTasksByDate,
-    deleteSchedulePositionsByStaffID,
-    deleteScheduleTasksByStaffID,
     getAllSchedulePositions,
     getAllScheduleTasks,
     getSchedulePositionsByDate,
@@ -51,6 +52,28 @@ function getStaffIDParam(d: ServiceDependencies): Nullable<string> {
     const staffID: string = d.params?.staffID ?? '';
 
     return staffID.trim() === '' ? null : staffID;
+}
+
+type DateGuard = {
+    allowed: boolean,
+    message: string
+};
+
+async function guardDateAction(
+    d     : ServiceDependencies,
+    date  : string,
+    action: RosterDateAction
+): Promise<DateGuard> {
+    const principalResult: Result<AccessPrincipal> = await getAccessPrincipal(d.sql, d.headers, "manager", false);
+    const principal: Nullable<AccessPrincipal> = principalResult.getData();
+
+    if (!principalResult.isSuccess() || principal === null) {
+        return { allowed: false, message: "Insufficient permission." };
+    }
+
+    const decision = checkDateAccess(principal.privilege, date, action);
+
+    return { allowed: decision.allowed, message: decision.message };
 }
 
 function buildSchedules(
@@ -200,76 +223,6 @@ export async function handleGetAllStaffSchedules(d: ServiceDependencies): Promis
     return new Response(true, HTTPStatus.OK, schedulesResult.getData() ?? []).unwrap(d.set);
 }
 
-async function resolveRosterRecord(d: ServiceDependencies): Promise<Result<RosterRecord>> {
-    const rosterRecordID: number = Number(d.body?.rosterRecordID);
-
-    if (!Number.isInteger(rosterRecordID) || rosterRecordID < 1) {
-        return new Result<RosterRecord>(false, null);
-    }
-
-    return await getRosterRecordByID(d.sql, rosterRecordID);
-}
-
-export async function handleCreateSchedule(d: ServiceDependencies): Promise<RFServerResponse> {
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
-
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
-    }
-
-    const recordResult: Result<RosterRecord> = await resolveRosterRecord(d);
-    const record      : Nullable<RosterRecord> = recordResult.getData();
-
-    if (!recordResult.isSuccess() || record === null) {
-        return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid roster record ID.").unwrap(d.set);
-    }
-
-    const hasPosition: boolean = d.body?.positionID !== undefined;
-    const hasTask   : boolean = d.body?.taskID     !== undefined;
-
-    if (!hasPosition && !hasTask) {
-        return new Response(false, HTTPStatus.BAD_REQUEST, "Missing position or task information.").unwrap(d.set);
-    }
-
-    if (hasPosition) {
-        const positionData: unknown = {
-            rosterRecordID: record.id,
-            dateTime      : d.body?.dateTime ?? '',
-            positionID    : d.body?.positionID ?? null
-        };
-
-        if (!validateSchedulePosition(positionData)) {
-            return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid schedule position.").unwrap(d.set);
-        }
-
-        const createPositionResult: Result<null> = await createSchedulePosition(d.sql, positionData);
-
-        if (!createPositionResult.isSuccess()) {
-            return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to create schedule position.").unwrap(d.set);
-        }
-    }
-
-    if (hasTask) {
-        const taskData: unknown = {
-            rosterRecordID: record.id,
-            dateTime      : d.body?.dateTime ?? '',
-            taskID        : Number(d.body?.taskID)
-        };
-
-        if (!validateScheduleTask(taskData)) {
-            return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid schedule task.").unwrap(d.set);
-        }
-
-        const createTaskResult: Result<null> = await createScheduleTask(d.sql, taskData);
-
-        if (!createTaskResult.isSuccess()) {
-            return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to create schedule task.").unwrap(d.set);
-        }
-    }
-
-    return new Response(true, HTTPStatus.CREATED, "Successfully created schedule entry.").unwrap(d.set);
-}
-
 export async function handleUpdateStaffScheduleOnDateByID(d: ServiceDependencies): Promise<RFServerResponse> {
     const date   : Nullable<string> = getDateParam(d);
     const staffID: Nullable<string> = getStaffIDParam(d);
@@ -278,10 +231,10 @@ export async function handleUpdateStaffScheduleOnDateByID(d: ServiceDependencies
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid date or staff ID.").unwrap(d.set);
     }
 
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
+    const guard: DateGuard = await guardDateAction(d, date, "move");
 
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
+    if (!guard.allowed) {
+        return new Response(false, HTTPStatus.FORBIDDEN, guard.message).unwrap(d.set);
     }
 
     const recordResult: Result<RosterRecord>   = await getRosterRecordByDateAndStaffID(d.sql, date, staffID);
@@ -336,22 +289,6 @@ export async function handleUpdateStaffScheduleOnDateByID(d: ServiceDependencies
     return new Response(true, HTTPStatus.OK, "Successfully updated staff schedule.").unwrap(d.set);
 }
 
-export async function handleDeleteAllSchedules(d: ServiceDependencies): Promise<RFServerResponse> {
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
-
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
-    }
-
-    const deleteResult: Result<null> = await deleteAllSchedules(d.sql);
-
-    if (!deleteResult.isSuccess()) {
-        return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to delete all schedules.").unwrap(d.set);
-    }
-
-    return new Response(true, HTTPStatus.OK, "Successfully deleted all schedules.").unwrap(d.set);
-}
-
 export async function handleDeleteAllSchedulesOnDate(d: ServiceDependencies): Promise<RFServerResponse> {
     const date: Nullable<string> = getDateParam(d);
 
@@ -359,10 +296,10 @@ export async function handleDeleteAllSchedulesOnDate(d: ServiceDependencies): Pr
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid date.").unwrap(d.set);
     }
 
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
+    const guard: DateGuard = await guardDateAction(d, date, "delete");
 
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
+    if (!guard.allowed) {
+        return new Response(false, HTTPStatus.FORBIDDEN, guard.message).unwrap(d.set);
     }
 
     await deleteSchedulePositionsByDate(d.sql, date);
@@ -379,10 +316,10 @@ export async function handleDeleteStaffScheduleOnDateByID(d: ServiceDependencies
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid date or staff ID.").unwrap(d.set);
     }
 
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
+    const guard: DateGuard = await guardDateAction(d, date, "delete");
 
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
+    if (!guard.allowed) {
+        return new Response(false, HTTPStatus.FORBIDDEN, guard.message).unwrap(d.set);
     }
 
     const deleteResult: Result<null> = await deleteScheduleByDateAndStaffID(d.sql, date, staffID);
@@ -394,21 +331,3 @@ export async function handleDeleteStaffScheduleOnDateByID(d: ServiceDependencies
     return new Response(true, HTTPStatus.OK, "Successfully deleted staff schedule.").unwrap(d.set);
 }
 
-export async function handleDeleteAllStaffSchedules(d: ServiceDependencies): Promise<RFServerResponse> {
-    const staffID: Nullable<string> = getStaffIDParam(d);
-
-    if (staffID === null) {
-        return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
-    }
-
-    const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
-
-    if (!permissionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
-    }
-
-    await deleteSchedulePositionsByStaffID(d.sql, staffID);
-    await deleteScheduleTasksByStaffID(d.sql, staffID);
-
-    return new Response(true, HTTPStatus.OK, "Successfully deleted all schedules for staff member.").unwrap(d.set);
-}

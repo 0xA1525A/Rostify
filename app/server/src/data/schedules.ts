@@ -455,3 +455,51 @@ export async function deleteAllSchedules(sql: SQL): Promise<Result<null>> {
 
     return new Result<null>(true, null);
 }
+
+export async function deleteSchedulePositionsByRosterRecordID(
+    sql: SQL,
+    rosterRecordID: number
+): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                schedule_positions
+
+        WHERE   roster_record_id = ${ rosterRecordID }
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function deleteScheduleTasksByRosterRecordID(
+    sql: SQL,
+    rosterRecordID: number
+): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                schedule_tasks
+
+        WHERE   roster_record_id = ${ rosterRecordID }
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function deleteScheduleByRosterRecordID(
+    sql: SQL,
+    rosterRecordID: number
+): Promise<Result<null>> {
+    await deleteSchedulePositionsByRosterRecordID(sql, rosterRecordID);
+    await deleteScheduleTasksByRosterRecordID(sql, rosterRecordID);
+
+    return new Result<null>(true, null);
+}
