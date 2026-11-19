@@ -26,6 +26,41 @@ export async function getAllPositionPreviews(sql: SQL): Promise<Result<Array<Pos
     return new Result<R>(true, result);
 }
 
+export async function getAllPositions(sql: SQL): Promise<Result<Array<Position>>> {
+    type R = Array<Position>;
+
+    const result: R = await sql`
+        SELECT  p.id,
+                p.unit_id   AS "unitID",
+                u.name      AS "unitName",
+                p.name,
+                p.description,
+                p.physical_load AS "physicalLoad",
+                p.mental_load   AS "mentalLoad",
+                p.risk_level    AS "riskLevel",
+                p.minimum_staff AS "minimumStaff",
+                p.target_staff  AS "targetStaff",
+                p.maximum_staff AS "maximumStaff",
+                p.minimum_sum_proficiency   AS "minimumSumProficiency",
+                p.target_sum_proficiency    AS "targetSumProficiency",
+                p.maximum_sum_proficiency   AS "maximumSumProficiency",
+                p.is_prioritising_staff_amount  AS "isPrioritisingStaffAmount"
+
+        FROM    positions   AS p
+        JOIN    units       AS u
+        ON      p.unit_id = u.id
+
+        ORDER BY
+                p.id    ASC
+    `;
+
+    if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    return new Result<R>(true, result);
+}
+
 export async function getPositionByID(
     sql       : SQL,
     positionID: number

@@ -26,6 +26,25 @@ export async function getAllStaffPreviews(
     return new Result<R>(true, result);
 }
 
+export async function getAllStaffWorkInfo(
+    sql: SQL
+): Promise<Result<Array<{ id: string, isFullTime: boolean }>>> {
+    type R = Array<{ id: string, isFullTime: boolean }>;
+
+    const result: R = await sql`
+        SELECT  id,
+                is_full_time AS "isFullTime"
+
+        FROM    staff
+    `;
+
+    if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    return new Result<R>(true, result);
+}
+
 export async function getStaffByStaffID(
     sql    : SQL,
     staffID: string

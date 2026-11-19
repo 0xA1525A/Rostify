@@ -586,6 +586,34 @@ CREATE TABLE IF NOT EXISTS staff_peer_preferences (
         CHECK (staff_a_id != staff_b_id)
 );
 
+CREATE TABLE IF NOT EXISTS position_conflicts (
+    position_a_id        SMALLINT        NOT NULL,
+    position_b_id        SMALLINT        NOT NULL,
+    conflict_duration_hr SMALLINT        NOT NULL,
+    severity             d_range_0_to_5  NOT NULL,
+
+    CONSTRAINT pkey__position_conflicts
+        PRIMARY KEY (position_a_id, position_b_id),
+
+    CONSTRAINT fkey__position_conflicts__position_a_id
+        FOREIGN KEY (position_a_id)
+            REFERENCES positions(id)
+            ON UPDATE RESTRICT
+            ON DELETE CASCADE,
+
+    CONSTRAINT fkey__position_conflicts__position_b_id
+        FOREIGN KEY (position_b_id)
+            REFERENCES positions(id)
+            ON UPDATE RESTRICT
+            ON DELETE CASCADE,
+
+    CONSTRAINT cond__position_conflicts__different_positions
+        CHECK (position_a_id != position_b_id),
+
+    CONSTRAINT cond__position_conflicts__positive_duration
+        CHECK (conflict_duration_hr > 0)
+);
+
 -- indexes
 
 CREATE UNIQUE INDEX uniqidx__staff_peer_preferences__ab_ba_are_identical
@@ -611,6 +639,9 @@ CREATE INDEX IF NOT EXISTS idx__staff_positions__position_id
 
 CREATE INDEX IF NOT EXISTS idx__staff_peer_preferences__staff_b_id
     ON staff_peer_preferences(staff_b_id);
+
+CREATE INDEX IF NOT EXISTS idx__position_conflicts__position_b_id
+    ON position_conflicts(position_b_id);
 
 CREATE INDEX IF NOT EXISTS idx__actie_sessions__staff_id
     ON active_sessions(staff_id);

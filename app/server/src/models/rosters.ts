@@ -19,9 +19,17 @@ export const RosterPunchSchema = Type.Object({
     clockEvent    : ClockEventSchema
 });
 
-export type ClockEvent    = Static<typeof ClockEventSchema>;
-export type RosterRecord  = Static<typeof RosterRecordSchema>;
-export type RosterPunch   = Static<typeof RosterPunchSchema>;
+export const DailyRosterEntrySchema = Type.Object({
+    id       : Type.Integer(),
+    date     : Type.String({ format: "date" }),
+    staff_id : Type.String({ format: "uuid" }),
+    shift    : Type.String({ minLength: 1 })
+});
+
+export type ClockEvent       = Static<typeof ClockEventSchema>;
+export type RosterRecord     = Static<typeof RosterRecordSchema>;
+export type RosterPunch      = Static<typeof RosterPunchSchema>;
+export type DailyRosterEntry = Static<typeof DailyRosterEntrySchema>;
 
 const checkRosterRecord = TypeCompiler.Compile(RosterRecordSchema);
 const checkRosterPunch  = TypeCompiler.Compile(RosterPunchSchema);

@@ -2,7 +2,7 @@ import { SQL } from "bun";
 
 import { Result } from "@lib:templates/result";
 
-import type { ClockEvent, RosterPunch, RosterRecord } from "@model:rosters";
+import type { ClockEvent, DailyRosterEntry, RosterPunch, RosterRecord } from "@model:rosters";
 
 export async function getAllRosterRecords(sql: SQL): Promise<Result<Array<RosterRecord>>> {
     type R = Array<RosterRecord>;
@@ -357,6 +357,107 @@ export async function deleteRosterRecordByDateAndStaffID(
 
         WHERE   date     = ${ date }
         AND     staff_id = ${ staffID }
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function getDailyRosterByDate(
+    sql: SQL,
+    date: string
+): Promise<Result<Array<DailyRosterEntry>>> {
+    type R = Array<DailyRosterEntry>;
+
+    const result: R = await sql`
+        SELECT  r.id,
+                r.date::text                                    AS "date",
+                r.staff_id                                      AS "staff_id",
+                s.name || '/' || COALESCE(u.name, 'unassigned')  AS "shift"
+
+        FROM    roster_records  AS r
+
+        JOIN    shifts          AS s
+        ON      r.shift_id = s.id
+
+        LEFT JOIN LATERAL
+        (
+                SELECT  p.unit_id
+
+                FROM    staff_positions AS sp
+                JOIN    positions       AS p
+                ON      sp.position_id = p.id
+
+                WHERE   sp.staff_id = r.staff_id
+
+                ORDER BY
+                        sp.preference   DESC,
+                        sp.proficiency  DESC,
+                        p.id            ASC
+
+                LIMIT   1
+        ) AS primary_position ON TRUE
+
+        LEFT JOIN units AS u
+        ON      primary_position.unit_id = u.id
+
+        WHERE   r.date = ${ date }
+
+        ORDER BY
+                r.staff_id  ASC
+    `;
+
+    if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    return new Result<R>(true, result);
+}
+
+export async function getRosterPunchesByDateAndStaffID(
+    sql: SQL,
+    date: string,
+    staffID: string
+): Promise<Result<Array<RosterPunch>>> {
+    type R = Array<RosterPunch>;
+
+    const result: R = await sql`
+        SELECT  p.roster_record_id  AS "rosterRecordID",
+                p.date_time         AS "dateTime",
+                p.clock_event       AS "clockEvent"
+
+        FROM    roster_punches  AS p
+
+        JOIN    roster_records  AS r
+        ON      p.roster_record_id = r.id
+
+        WHERE   r.date     = ${ date }
+        AND     r.staff_id = ${ staffID }
+
+        ORDER BY
+                p.date_time ASC
+    `;
+
+    if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    return new Result<R>(true, result);
+}
+
+export async function deleteRosterPunchesByDate(sql: SQL, date: string): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                roster_punches  AS p
+
+        USING   roster_records  AS r
+
+        WHERE   p.roster_record_id = r.id
+        AND     r.date = ${ date }
 
         RETURNING
                 1 AS "_"

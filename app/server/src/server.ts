@@ -23,6 +23,7 @@ import { taskRoutes }     from "@route:tasks";
 import { shiftRoutes }    from "@route:shifts";
 import { rosterRoutes }   from "@route:rosters";
 import { scheduleRoutes } from "@route:schedules";
+import { positionConflictRoutes } from "@route:position_conflicts";
 
 export interface EnvVariables {
     readonly HOST        : string;
@@ -94,6 +95,7 @@ export async function rostify(): Promise<void> {
         .use(shiftRoutes)
         .use(rosterRoutes)
         .use(scheduleRoutes)
+        .use(positionConflictRoutes)
         .listen(envs.PORT);
 
         logger.info(`${ id } is listening to ${ envs.HOST }:${ envs.PORT }.`);
