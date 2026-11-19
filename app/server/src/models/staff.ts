@@ -68,9 +68,9 @@ export const StaffAvailabilitySchema = Type.Object({
     okOvertime: Type.Boolean(),
     okMultipleBreak: Type.Boolean(),
     okLongBreak: Type.Boolean(),
-    preferredHour: Type.Integer({ minimum: 1 }),
-    preferredBreakHour: Type.Integer({ minimum: 0 }),
-    preferredShift: ShiftNameSchema
+    preferredHour: Type.Union([Type.Integer({ minimum: 1 }), Type.Null()]),
+    preferredBreakHour: Type.Union([Type.Integer({ minimum: 1 }), Type.Null()]),
+    preferredShift: Type.Union([ShiftNameSchema, Type.Null()])
 });
 
 export type Staff          = Static<typeof StaffSchema>;

@@ -4,35 +4,35 @@ import type { Nullable }   from "@lib:types/nullable";
 import      { ServiceDependencies } from "@lib:templates/service_deps";
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
-import { getLoginCredentialsByUsername } from "@data:logins/logins";
-import { getStaffByID }                  from "@data:staff";
-import { getSessionByStaffID, createSessionForStaffID } from "@data:sessions";
+import { getLoginByUsername } from "@data:logins";
+import { getStaffByStaffID }                  from "@data:staff";
+import { getSessionByStaffID, createSessionByStaffID } from "@data:sessions";
 
 import { validateLoginInfo } from "@service:auth/validator";
 
-import      { LoginCredentials } from "@model:logins";
+import      { Login } from "@model:logins";
 import type { Session }          from "@model:sessions";
 import type { Staff }            from "@model:staff";
 
-export async function handleLogin(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
-     if (!d.sql) {
+export async function handleLogin(d: ServiceDependencies): Promise<RFServerResponse> {
+    if (!d.sql) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "SQL connection is undefined or null.").unwrap(d.set);
     }
 
-    const validateResult        : Result<string>   = validateLoginInfo(d.body);
-    const validationErrorMessage: Nullable<string> = validateResult.getData();
+    const validateResult: Result<string>   = validateLoginInfo(d.body);
+    const errorMessage  : Nullable<string> = validateResult.getData();
 
-    if (!validateResult.isSuccess() && validationErrorMessage === null) {
-        return new Response(false, HTTPStatus.BAD_REQUEST, validationErrorMessage).unwrap(d.set);
+    if (!validateResult.isSuccess()) {
+        return new Response(false, HTTPStatus.BAD_REQUEST, errorMessage ?? "Invalid login information.").unwrap(d.set);
     }
 
-    const getCredentialsResult: Result<LoginCredentials>   = await getLoginCredentialsByUsername(d.sql, d.body.username);
-    const credentials         : Nullable<LoginCredentials> = getCredentialsResult.getData();
+    const username: string = d.body.username;
+    const password: string = d.body.password;
 
-    if (!getCredentialsResult.isSuccess() || credentials === null || !await Bun.password.verify(d.body.password, credentials.passwordHash)) {
+    const getCredentialsResult: Result<Login>   = await getLoginByUsername(d.sql, username);
+    const credentials         : Nullable<Login> = getCredentialsResult.getData();
+
+    if (!getCredentialsResult.isSuccess() || credentials === null || !await Bun.password.verify(password, credentials.passwordHash)) {
         return new Response(false, HTTPStatus.UNAUTHORISED, "Invalid username or password.").unwrap(d.set);
     }
 
@@ -53,17 +53,17 @@ export async function handleLogin(
     const activeSessionResult: Result<Session> = await getSessionByStaffID(d.sql, credentials.staffID);
 
     if (activeSessionResult.isSuccess()) {
-        return new Response(false, HTTPStatus.FORBIDDEN, `@${ d.body.username } has already logged in on another device.`).unwrap(d.set);
+        return new Response(false, HTTPStatus.FORBIDDEN, `@${ username } has already logged in on another device.`).unwrap(d.set);
     }
 
-    const getStaffInfoResult: Result<Staff>   = await getStaffByID(d.sql, credentials.staffID);
+    const getStaffInfoResult: Result<Staff>   = await getStaffByStaffID(d.sql, credentials.staffID);
     const staffInfo         : Nullable<Staff> = getStaffInfoResult.getData();
 
     if (!getStaffInfoResult.isSuccess() || staffInfo === null) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, `Unable to retreive staff information.`).unwrap(d.set);
     }
 
-    const createSessionResult: Result<string>   = await createSessionForStaffID(d.sql, credentials.staffID);
+    const createSessionResult: Result<string>   = await createSessionByStaffID(d.sql, credentials.staffID);
     const newToken           : Nullable<string> = createSessionResult.getData();
 
     if (!createSessionResult.isSuccess() || newToken === null) {

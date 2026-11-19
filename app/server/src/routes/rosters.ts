@@ -1,18 +1,32 @@
 import { Elysia } from "elysia";
 
-import { Fn } from "@lib:types/fn";
+import type { Fn } from "@lib:types/fn";
+import {
+    handleCreateRoster,
+    handleDeleteAllRosters,
+    handleDeleteAllRostersOnDate,
+    handleDeleteAllStaffRostersByID,
+    handleDeleteStaffRosterOnDateByID,
+    handleGetAllRosters,
+    handleGetAllRostersOnDate,
+    handleGetAllStaffRostersByID,
+    handleGetStaffRosterOnDateByID,
+    handleUpdateStaffRosterOnDateByID
+} from "@service:business/rosters";
 
-export const rosterRoutes = new Elysia({ prefix: "/roster" })
-    .get("/", handleGetAllRosters as Fn<[any], any>)
-    .get("/date/:date", handleGetAllRostersOnDate as Fn<[any], any>)
-    .get("/date/:date/:staffID", handleGetStaffRosterOnDateByID as Fn<[any], any>)
-    .get("/staff/:staffID", handleGetAllStaffRostersByID as Fn<[any], any>)
+type F = Fn<[unknown], unknown>;
 
-    .post("/date/:date/:staffID", handleCreateRoster as Fn<[any], any>)
+export const rosterRoutes = new Elysia({ prefix: "/rosters" })
+    .get("/", handleGetAllRosters as F)
+    .get("/date/:date", handleGetAllRostersOnDate as F)
+    .get("/date/:date/:staffID", handleGetStaffRosterOnDateByID as F)
+    .get("/staff/:staffID", handleGetAllStaffRostersByID as F)
 
-    .patch("/date/:date/:staffID", handleUpdateStaffRosterOnDateByID as Fn<[any], any>)
+    .post("/date/:date/:staffID", handleCreateRoster as F)
 
-    .delete("/", handleDeleteAllRosters as Fn<[any], any>)
-    .delete("/date/:date", handleDeleteAllRostersOnDate as Fn<[any], any>)
-    .delete("/date/:date/:staffID", handleDeleteStaffRosterOnDateByID as Fn<[any], any>)
-    .delete("/staff/:staffID", handleDeleteAllStaffRostersByID as Fn<[any], any>);
+    .patch("/date/:date/:staffID", handleUpdateStaffRosterOnDateByID as F)
+
+    .delete("/", handleDeleteAllRosters as F)
+    .delete("/date/:date", handleDeleteAllRostersOnDate as F)
+    .delete("/date/:date/:staffID", handleDeleteStaffRosterOnDateByID as F)
+    .delete("/staff/:staffID", handleDeleteAllStaffRostersByID as F);

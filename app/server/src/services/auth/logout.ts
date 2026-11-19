@@ -9,9 +9,7 @@ import { deleteSessionByToken, isSessionTokenExist } from "@data:sessions";
 
 import { getClientSessionToken } from "@service:auth/sessions";
 
-export async function handleLogout(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleLogout(d: ServiceDependencies): Promise<RFServerResponse> {
     if (!d.sql) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "SQL connection is undefined or null.").unwrap(d.set);
     }

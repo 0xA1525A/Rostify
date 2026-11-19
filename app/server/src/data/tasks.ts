@@ -29,7 +29,7 @@ export async function getAllTasks(
     return new Result<R>(true, result);
 }
 
-export async function getAllTasksInDay(
+export async function getAllTasksByDay(
     sql: SQL,
     day: WeekdayShortName
 ): Promise<Result<Array<Task>>> {
@@ -56,7 +56,7 @@ export async function getAllTasksInDay(
     return new Result<R>(true, result);
 }
 
-export async function getTaskByID(
+export async function getTaskByTaskID(
     sql: SQL,
     taskID: number
 ): Promise<Result<Task>> {
@@ -83,7 +83,7 @@ export async function getTaskByID(
     return new Result<Task>(true, result[0]);
 }
 
-export async function searchTasksBySimilarName(
+export async function searchTasksByTaskName(
     sql: SQL,
     taskName: string
 ): Promise<Result<Array<Task>>> {
@@ -152,7 +152,7 @@ export async function createTask(
     return new Result<number>(true, result[0].id);
 }
 
-export async function updateTaskByID(
+export async function updateTaskByTaskID(
     sql: SQL,
     taskID: number,
     taskInfo: Omit<Task, "id">
@@ -204,7 +204,7 @@ export async function deleteAllTasks(
     return new Result<null>(result.length !== 0, null);
 }
 
-export async function deleteTaskByID(
+export async function deleteTaskByTaskID(
     sql: SQL,
     taskID: number
 ): Promise<Result<string>> {

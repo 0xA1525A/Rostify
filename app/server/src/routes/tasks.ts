@@ -1,27 +1,17 @@
 import { Elysia } from "elysia";
 
 import type { Fn } from "@lib:types/fn";
+import { handleCreateTask, handleDeleteAllTasks, handleDeleteTaskByTaskID, handleGetAllTasks, handleGetTaskByTaskID, handleUpdateTaskByTaskID } from "@service:business/tasks";
 
-import {
-    handleCreateTask,
-    handleDeleteAllTasks,
-    handleDeleteTaskByID,
-    handleGetAllTasks,
-    handleGetAllTasksInDay,
-    handleGetTaskByID,
-    handleSearchTasksByName,
-    handleUpdateTaskByID
-} from "@service:business/tasks";
+type F = Fn<[unknown], unknown>;
 
-export const taskRoutes = new Elysia({ prefix: "/task" })
-    .get("/", handleGetAllTasks as Fn<[any], any>)
-    .get("/search/:taskName", handleSearchTasksByName as Fn<[any], any>)
-    .get("/day/:taskDay", handleGetAllTasksInDay as Fn<[any], any>)
-    .get("/:taskID", handleGetTaskByID as Fn<[any], any>)
+export const taskRoutes = new Elysia({ prefix: "/tasks" })
+    .get("/", handleGetAllTasks as F)
+    .get("/:taskID", handleGetTaskByTaskID as F)
 
-    .post("/", handleCreateTask as Fn<[any], any>)
+    .post("/", handleCreateTask as F)
 
-    .patch("/:taskID", handleUpdateTaskByID as Fn<[any], any>)
+    .patch("/:taskID", handleUpdateTaskByTaskID as F)
 
-    .delete("/", handleDeleteAllTasks as Fn<[any], any>)
-    .delete("/:taskID", handleDeleteTaskByID as Fn<[any], any>);
+    .delete("/", handleDeleteAllTasks as F)
+    .delete("/:taskID", handleDeleteTaskByTaskID as F);

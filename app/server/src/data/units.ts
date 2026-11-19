@@ -44,10 +44,7 @@ export async function getUnitByID(sql: SQL, unitID: number): Promise<Result<Unit
     return new Result<Unit>(true, result[0]);
 }
 
-export async function searchUnitsBySimilarName(
-    sql: SQL,
-    unitName: string
-): Promise<Result<Array<Unit>>> {
+export async function searchUnitsByUnitName(sql: SQL, unitName: string): Promise<Result<Array<Unit>>> {
     type R = Array<Unit>;
 
     const result: R = await sql`
@@ -72,10 +69,7 @@ export async function searchUnitsBySimilarName(
     return new Result<R>(true, result);
 }
 
-export async function createUnit(
-    sql: SQL,
-    newUnit: Omit<Unit, "id">
-): Promise<Result<number>> {
+export async function createUnit(sql: SQL, newUnit: Omit<Unit, "id">): Promise<Result<number>> {
     type R = Array<{ id: number }>;
 
     const result: R = await sql`
@@ -103,11 +97,7 @@ export async function createUnit(
     return new Result<number>(true, result[0].id);
 }
 
-export async function updateUnitByID(
-    sql: SQL,
-    unitID: number,
-    newUnit: Omit<Unit, "id">
-): Promise<Result<Unit>> {
+export async function updateUnitByUnitID(sql: SQL, unitID: number, newUnit: Omit<Unit, "id">): Promise<Result<Unit>> {
     type R = Array<Unit>;
 
     const result: R = await sql`
@@ -147,7 +137,7 @@ export async function deleteAllUnits(sql: SQL): Promise<Result<null>> {
     return new Result<null>(result.length !== 0, null);
 }
 
-export async function deleteUnitByID(sql: SQL, unitID: number): Promise<Result<string>> {
+export async function deleteUnitByUnitID(sql: SQL, unitID: number): Promise<Result<string>> {
     type R = Array<{ name: string }>;
 
     const result: R = await sql`

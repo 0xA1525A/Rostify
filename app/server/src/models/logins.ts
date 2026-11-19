@@ -4,7 +4,6 @@ import { TypeCompiler } from "@sinclair/typebox/compiler";
 export const AccountStatusSchema = Type.Union([
     Type.Literal("active"),
     Type.Literal("pending"),
-    Type.Literal("recovery"),
     Type.Literal("disabled")
 ]);
 
@@ -15,11 +14,11 @@ export const LoginCredentialsSchema = Type.Object({
     status      : AccountStatusSchema
 });
 
-export type LoginCredentials = Static<typeof LoginCredentialsSchema>;
+export type Login = Static<typeof LoginCredentialsSchema>;
 export type AccountStatus    = Static<typeof AccountStatusSchema>;
 
 const checkLoginCredentials = TypeCompiler.Compile(LoginCredentialsSchema);
 const checkAccountStatus    = TypeCompiler.Compile(AccountStatusSchema);
 
-export const validateLoginCredentials = (v: unknown): v is LoginCredentials => checkLoginCredentials.Check(v);
+export const validateLoginCredentials = (v: unknown): v is Login => checkLoginCredentials.Check(v);
 export const validateAccountStatus    = (v: unknown): v is AccountStatus    => checkAccountStatus.Check(v);

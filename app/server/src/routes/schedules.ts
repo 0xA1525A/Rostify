@@ -1,18 +1,32 @@
 import { Elysia } from "elysia";
 
-import { Fn } from "@lib:types/fn";
+import type { Fn } from "@lib:types/fn";
+import {
+    handleCreateSchedule,
+    handleDeleteAllSchedules,
+    handleDeleteAllSchedulesOnDate,
+    handleDeleteAllStaffSchedules,
+    handleDeleteStaffScheduleOnDateByID,
+    handleGetAllSchedulePreviews,
+    handleGetAllSchedulesOnDate,
+    handleGetAllStaffSchedules,
+    handleGetStaffScheduleOnDateByID,
+    handleUpdateStaffScheduleOnDateByID
+} from "@service:business/schedules";
 
-export const scheduleRoutes = new Elysia({ prefix: "/schedule" })
-    .get("/", handleGetAllSchedulePreviews as Fn<[any], any>)
-    .get("/date/:date", handleGetAllSchedulesOnDate as Fn<[any], any>)
-    .get("/date/:date/:staffID", handleGetStaffScheduleOnDateByID as Fn<[any], any>)
-    .get("/staff/:staffID", handleGetAllStaffSchedules as Fn<[any], any>)
+type F = Fn<[unknown], unknown>;
 
-    .post("/date/:date/:staffID", handleCreateSchedule as Fn<[any], any>)
+export const scheduleRoutes = new Elysia({ prefix: "/schedules" })
+    .get("/", handleGetAllSchedulePreviews as F)
+    .get("/date/:date", handleGetAllSchedulesOnDate as F)
+    .get("/date/:date/:staffID", handleGetStaffScheduleOnDateByID as F)
+    .get("/staff/:staffID", handleGetAllStaffSchedules as F)
 
-    .patch("/date/:date/:staffID", handleUpdateStaffScheduleOnDateByID as Fn<[any], any>)
+    .post("/date/:date/:staffID", handleCreateSchedule as F)
 
-    .delete("/", handleDeleteAllSchedules as Fn<[any], any>)
-    .delete("/date/:date", handleDeleteAllSchedulesOnDate as Fn<[any], any>)
-    .delete("/date/:date/:staffID", handleDeleteStaffScheduleOnDateByID as Fn<[any], any>)
-    .delete("/staff/:staffID", handleDeleteAllStaffSchedules as Fn<[any], any>);
+    .patch("/date/:date/:staffID", handleUpdateStaffScheduleOnDateByID as F)
+
+    .delete("/", handleDeleteAllSchedules as F)
+    .delete("/date/:date", handleDeleteAllSchedulesOnDate as F)
+    .delete("/date/:date/:staffID", handleDeleteStaffScheduleOnDateByID as F)
+    .delete("/staff/:staffID", handleDeleteAllStaffSchedules as F);

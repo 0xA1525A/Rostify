@@ -1,22 +1,22 @@
-export class Result<S, E> {
-    private result:
-        | { success: true;  data: S }
-        | { success: false; data: E };
+import type { Nullable } from "@lib:types/nullable";
 
-    public constructor (success: true,  data: S);
-    public constructor (success: false, data: E);
+export class Result<T> {
+    private readonly success: boolean;
+    private readonly data   : Nullable<T>;
 
-    public constructor (success: boolean, data: S | E) {
-        this.result = success
-            ? { success: true,  data: data as S }
-            : { success: false, data: data as E };
+    public constructor (
+        success: boolean,
+        data   : Nullable<T>
+    ) {
+        this.success = success;
+        this.data    = data;
     }
 
     public isSuccess(): boolean {
-        return this.result.success;
+        return this.success;
     }
 
-    public getData(): S | E {
-        return this.result.data;
+    public getData(): Nullable<T> {
+        return this.data;
     }
 }

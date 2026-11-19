@@ -1,10 +1,10 @@
 import { SQL } from "bun";
 
-import type { AccountStatus, LoginCredentials } from "@model:logins";
-import      { Result }                          from "@lib:templates/result";
+import type { AccountStatus, Login } from "@model:logins";
+import      { Result }               from "@lib:templates/result";
 
-export async function getAllLoginCredentials(sql: SQL): Promise<Result<Array<Omit<LoginCredentials, "passwordHash">>>> {
-    type R = Array<Omit<LoginCredentials, "passwordHash">>;
+export async function getAllLogins(sql: SQL): Promise<Result<Array<Omit<Login, "passwordHash">>>> {
+    type R = Array<Omit<Login, "passwordHash">>;
 
     const result: R = await sql`
         SELECT  staff_id    AS "staffID",
@@ -21,11 +21,7 @@ export async function getAllLoginCredentials(sql: SQL): Promise<Result<Array<Omi
     return new Result<R>(true, result);
 }
 
-async function getLoginCredentialsBy(
-    sql   : SQL,
-    column: string,
-    value : string
-): Promise<Result<LoginCredentials>> {
+async function getLoginBy(sql: SQL, column: string, value: string): Promise<Result<Login>> {
     type R = Array<{
         staffID     : string,
         username    : string,
@@ -45,31 +41,24 @@ async function getLoginCredentialsBy(
     `;
 
     if (result.length === 0) {
-        return new Result<LoginCredentials>(false, null);
+        return new Result<Login>(false, null);
     }
 
-    return new Result<LoginCredentials>(true, result[0] as LoginCredentials);
+    return new Result<Login>(true, result[0] as Login);
 }
 
-export async function getLoginCredentialsByUsername(
+export async function getLoginByUsername(sql: SQL, username: string): Promise<Result<Login>> {
+    return await getLoginBy(sql, "username", username);
+}
+
+export async function getLoginByStaffID(sql: SQL, staffID: string): Promise<Result<Login>> {
+    return await getLoginBy(sql, "staff_id", staffID);
+}
+
+export async function createLogin(
     sql     : SQL,
-    username: string
-): Promise<Result<LoginCredentials>> {
-    return await getLoginCredentialsBy(sql, "username", username);
-}
-
-export async function getLoginCredentialsByStaffID(
-    sql    : SQL,
-    staffID: string
-): Promise<Result<LoginCredentials>> {
-    return await getLoginCredentialsBy(sql, "staff_id", staffID);
-}
-
-export async function createLoginAccount(
-    sql         : SQL,
-    staffID     : string,
-    username    : string,
-    passwordHash: string
+    staffID : string,
+    newLogin: Pick<Login, "username" | "passwordHash">
 ): Promise<Result<string>> {
     type R = Array<{ username: string }>;
 
@@ -84,8 +73,8 @@ export async function createLoginAccount(
         )
         VALUES  (
                 ${ staffID },
-                ${ username },
-                ${ passwordHash },
+                ${ newLogin.username },
+                ${ newLogin.passwordHash },
                 'pending'
         )
         RETURNING
@@ -99,12 +88,12 @@ export async function createLoginAccount(
     return new Result<string>(true, result[0].username);
 }
 
-export async function updateLoginAccountByID(
+export async function updateLoginByID(
     sql: SQL,
     staffID: string,
-    newCredentials: Omit<LoginCredentials, "staffID">
-): Promise<Result<LoginCredentials>> {
-    type R = Array<LoginCredentials>;
+    newCredentials: Omit<Login, "staffID">
+): Promise<Result<Login>> {
+    type R = Array<Login>;
 
     const result: R = await sql`
         UPDATE  logins
@@ -123,16 +112,13 @@ export async function updateLoginAccountByID(
     `;
 
     if (result.length === 0) {
-        return new Result<LoginCredentials>(false, null);
+        return new Result<Login>(false, null);
     }
 
-    return new Result<LoginCredentials>(true, result[0]);
+    return new Result<Login>(true, result[0]);
 }
 
-export async function deleteLoginAccountByID(
-    sql: SQL,
-    staffID: string
-): Promise<Result<string>> {
+export async function deleteLoginByStaffID(sql: SQL, staffID: string): Promise<Result<string>> {
     type R = Array<{ username: string }>;
 
     const result: R = await sql`
@@ -153,9 +139,7 @@ export async function deleteLoginAccountByID(
     return new Result<string>(true, result[0].username);
 }
 
-export async function deleteAllLoginAccounts(
-    sql: SQL
-): Promise<Result<null>> {
+export async function deleteAllLogins(sql: SQL): Promise<Result<null>> {
     type R = Array<{ _: number }>;
 
     const result: R = await sql`

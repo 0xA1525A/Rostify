@@ -15,4 +15,4 @@ export type Day = Static<typeof DaySchema>;
 
 const checkDay = TypeCompiler.Compile(DaySchema);
 
-export const validateDay  = (v: unknown): v is Day  => checkDay.Check(v);
+export const validateDay = (v: unknown): v is Day  => checkDay.Check(v);

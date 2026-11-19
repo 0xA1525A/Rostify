@@ -22,8 +22,10 @@ export const ShfitSchema = Type.Object({
     isOvernight: Type.Boolean()
 });
 
+export const ShiftSchema = ShfitSchema;
+
 export type ShiftName = Static<typeof ShiftNameSchema>;
-export type Shift = Static<typeof ShfitSchema>;
+export type Shift = Static<typeof ShiftSchema>;
 
 const checkShiftName = TypeCompiler.Compile(ShiftNameSchema);
 const checkShift = TypeCompiler.Compile(ShfitSchema);

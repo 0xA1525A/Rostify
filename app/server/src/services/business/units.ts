@@ -7,20 +7,18 @@ import      { Response, type RFServerResponse } from "@lib:templates/response";
 import {
     createUnit,
     deleteAllUnits,
-    deleteUnitByID,
+    deleteUnitByUnitID,
     getAllUnits,
     getUnitByID,
-    searchUnitsBySimilarName,
-    updateUnitByID
+    searchUnitsByUnitName,
+    updateUnitByUnitID
 } from "@data:units";
 
 import { validateAccessPermission } from "@service:permission/permission";
 
 import { type Unit, validateUnit } from "@model:units";
 
-export async function handleGetAllUnits(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetAllUnits(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -37,9 +35,7 @@ export async function handleGetAllUnits(
     return new Response(true, HTTPStatus.OK, allUnits).unwrap(d.set);
 }
 
-export async function handleGetUnitByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetUnitByUnitID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -62,9 +58,7 @@ export async function handleGetUnitByID(
     return new Response(true, HTTPStatus.OK, unit).unwrap(d.set);
 }
 
-export async function handleSearchUnitsByName(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
+export async function handleSearchUnitsByName(d: ServiceDependencies): Promise<RFServerResponse>
 {
      const unitName: string = d.params.unitName ?? '';
 
@@ -80,7 +74,7 @@ export async function handleSearchUnitsByName(
 
     type R = Array<Unit>;
 
-    const searchUnitsResult: Result<R>   = await searchUnitsBySimilarName(d.sql, `%${ unitName }%`);
+    const searchUnitsResult: Result<R>   = await searchUnitsByUnitName(d.sql, `%${ unitName }%`);
     const searchUnits      : Nullable<R> = searchUnitsResult.getData();
 
     if (!searchUnitsResult.isSuccess()) {
@@ -90,9 +84,7 @@ export async function handleSearchUnitsByName(
     return new Response(true, HTTPStatus.OK, searchUnits).unwrap(d.set);
 }
 
-export async function handleCreateUnit(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleCreateUnit(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -122,9 +114,7 @@ export async function handleCreateUnit(
     return new Response(true, HTTPStatus.CREATED, newUnitID).unwrap(d.set);
 }
 
-export async function handleUpdateUnitByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleUpdateUnitByUnitID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -157,7 +147,7 @@ export async function handleUpdateUnitByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed unit info.").unwrap(d.set);
     }
 
-    const updateUnitResult: Result<Unit>   = await updateUnitByID(d.sql, Number.parseInt(targetUnitID), newUnit);
+    const updateUnitResult: Result<Unit>   = await updateUnitByUnitID(d.sql, Number.parseInt(targetUnitID), newUnit);
     const updatedUnit     : Nullable<Unit> = updateUnitResult.getData();
 
     if (!updateUnitResult.isSuccess()) {
@@ -167,9 +157,7 @@ export async function handleUpdateUnitByID(
     return new Response(true, HTTPStatus.OK, updatedUnit).unwrap(d.set);
 }
 
-export async function handleDeleteAllUnits(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteAllUnits(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -185,9 +173,7 @@ export async function handleDeleteAllUnits(
     return new Response(true, HTTPStatus.OK, "Successfully deleted all units.").unwrap(d.set);
 }
 
-export async function handleDeleteUnitByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteUnitByUnitID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -200,12 +186,12 @@ export async function handleDeleteUnitByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Unit ID.").unwrap(d.set);
     }
 
-    const deleteUnitResult: Result<string> = await deleteUnitByID(d.sql, Number.parseInt(targetUnitID));
+    const deleteUnitResult: Result<string> = await deleteUnitByUnitID(d.sql, Number.parseInt(targetUnitID));
     const deletedUnitName : Nullable<string> = deleteUnitResult.getData();
 
     if (!deleteUnitResult.isSuccess()) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to delete this unit.").unwrap(d.set);
     }
 
-    return new Response(false, HTTPStatus.OK, `Successfully deleted unit ${ deletedUnitName }.`).unwrap(d.set);
+    return new Response(true, HTTPStatus.OK, `Successfully deleted unit ${ deletedUnitName }.`).unwrap(d.set);
 }

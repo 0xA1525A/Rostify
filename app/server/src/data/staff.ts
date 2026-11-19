@@ -2,7 +2,7 @@ import { SQL } from "bun";
 
 import { Result } from "@lib:templates/result";
 
-import type { StaffPreview, Staff, StaffAvailability, StaffTel, StaffEmail } from "@model:staff";
+import type { StaffPreview, Staff, StaffTel, StaffEmail } from "@model:staff";
 
 export async function getAllStaffPreviews(
     sql: SQL
@@ -26,7 +26,7 @@ export async function getAllStaffPreviews(
     return new Result<R>(true, result);
 }
 
-export async function getStaffByID(
+export async function getStaffByStaffID(
     sql    : SQL,
     staffID: string
 ): Promise<Result<Staff>> {
@@ -54,7 +54,7 @@ export async function getStaffByID(
     return new Result<Staff>(true, result[0]);
 }
 
-export async function getStaffPreviewsBySimilarNames(
+export async function getStaffPreviewsByAnyName(
     sql: SQL,
     name: string
 ): Promise<Result<Array<StaffPreview>>> {
@@ -88,10 +88,7 @@ export async function getStaffPreviewsBySimilarNames(
     return new Result<R>(true, result);
 }
 
-export async function createStaff(
-    sql: SQL,
-    staffInfo: Omit<Staff, "id">
-): Promise<Result<string>> {
+export async function createStaff(sql: SQL, staffInfo: Omit<Staff, "id">): Promise<Result<string>> {
     type R = Array<{ id: string }>;
 
     const result: R = await sql`
@@ -127,7 +124,7 @@ export async function createStaff(
     return new Result<string>(true, result[0].id);
 }
 
-export async function updateStaffByID(
+export async function updateStaffByStaffID(
     sql: SQL,
     staffID: string,
     staffInfo: Omit<Staff, "id">
@@ -165,7 +162,7 @@ export async function updateStaffByID(
     return new Result<Staff>(true, result[0]);
 }
 
-export async function deleteStaffByID(
+export async function deleteStaffByStaffID(
     sql: SQL,
     staffID: string
 ): Promise<Result<{ firstName: string, lastName: string }>> {
@@ -206,11 +203,28 @@ export async function deleteAllStaff(
                 1 AS "_"
     `;
 
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function getAllEmails(sql: SQL): Promise<Result<Array<StaffEmail>>> {
+    type R = Array<StaffEmail>;
+
+    const result: R = await sql`
+        SELECT  id,
+                staff_id AS "staffID",
+                email
+
+        FROM    staff_emails
+
+        ORDER BY
+                email       ASC
+    `;
+
     if (result.length === 0) {
-        return new Result<null>(false, null);
+        return new Result<R>(false, null);
     }
 
-    return new Result<null>(true, null);
+    return new Result<R>(true, result);
 }
 
 export async function getEmailsByStaffID(
@@ -221,7 +235,7 @@ export async function getEmailsByStaffID(
 
     const result: R = await sql`
         SELECT  id,
-                staff_id AS "staffID"
+                staff_id AS "staffID",
                 email
 
         FROM    staff_emails
@@ -236,7 +250,7 @@ export async function getEmailsByStaffID(
     return new Result<R>(true, result);
 }
 
-export async function addEmailForID(
+export async function addEmailByStaffID(
     sql: SQL,
     staffID: string,
     email: string
@@ -266,6 +280,27 @@ export async function addEmailForID(
     return new Result<number>(true, result[0].id);
 }
 
+export async function getAllTels(sql: SQL): Promise<Result<Array<StaffTel>>> {
+    type R = Array<StaffTel>;
+
+    const result: R = await sql`
+        SELECT  id,
+                staff_id AS "staffID",
+                tel
+
+        FROM    staff_tels
+
+        ORDER BY
+                tel         ASC
+    `;
+
+    if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    return new Result<R>(true, result);
+}
+
 export async function getTelsByStaffID(
     sql: SQL,
     staffID: string
@@ -274,7 +309,7 @@ export async function getTelsByStaffID(
 
     const result: R = await sql`
         SELECT  id,
-                staff_id AS "staffID"
+                staff_id AS "staffID",
                 tel
 
         FROM    staff_tels
@@ -289,7 +324,7 @@ export async function getTelsByStaffID(
     return new Result<R>(true, result);
 }
 
-export async function addTelForID(
+export async function addTelByStaffID(
     sql: SQL,
     staffID: string,
     tel: string
@@ -319,7 +354,7 @@ export async function addTelForID(
     return new Result<number>(true, result[0].id);
 }
 
-export async function updateEmailForIDByEmail(
+export async function updateEmailByEmailAndStaffID(
     sql: SQL,
     staffID: string,
     email: string,
@@ -346,7 +381,7 @@ export async function updateEmailForIDByEmail(
     return new Result<number>(true, result[0].id);
 }
 
-export async function updateTelForIDByTel(
+export async function updateTelByTelAndStaffID(
     sql: SQL,
     staffID: string,
     tel: string,
@@ -373,7 +408,7 @@ export async function updateTelForIDByTel(
     return new Result<number>(true, result[0].id);
 }
 
-export async function deleteEmailFromIDByEmail(
+export async function deleteEmailByEmail(
     sql: SQL,
     staffID: string,
     email: string
@@ -391,14 +426,24 @@ export async function deleteEmailFromIDByEmail(
                 1 AS "_"
     `;
 
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
+    return new Result<null>(result.length !== 0, null);
 }
 
-export async function deleteTelFromIDByTel(
+export async function deleteAllEmails(sql: SQL): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                staff_emails
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
+}
+
+export async function deleteTelByTel(
     sql: SQL,
     staffID: string,
     tel: string
@@ -416,323 +461,19 @@ export async function deleteTelFromIDByTel(
                 1 AS "_"
     `;
 
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
+    return new Result<null>(result.length !== 0, null);
 }
 
-export async function createAvailabilityOnDateForID(
-    sql: SQL,
-    staffID: string,
-    date: string,
-    availability: StaffAvailability
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        INSERT INTO
-                staff_availability
-        (
-                date,
-                staff_id,
-                from_time,
-                to_time,
-                to_date,
-                is_flexible,
-                ok_overtime,
-                ok_multiple_break,
-                ok_long_break,
-                preferred_hour,
-                preferred_break_hour,
-                preferred_shift
-        )
-        VALUES
-        (
-                ${ date },
-                ${ staffID },
-                ${ availability.fromTime },
-                ${ availability.toTime },
-                ${ availability.toDate },
-                ${ availability.isFlexible },
-                ${ availability.okOvertime },
-                ${ availability.okMultipleBreak },
-                ${ availability.okLongBreak },
-                ${ availability.preferredHour },
-                ${ availability.preferredBreakHour },
-                ${ availability.preferredShift }
-        )
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function updateAvailabilityOnDateForID(
-    sql: SQL,
-    staffID: string,
-    date: string,
-    availability: StaffAvailability
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        UPDATE  staff_availability
-
-        SET     from_time            = ${ availability.fromTime },
-                to_time              = ${ availability.toTime },
-                to_date              = ${ availability.toDate },
-                is_flexible          = ${ availability.isFlexible },
-                ok_overtime          = ${ availability.okOvertime },
-                ok_multiple_break    = ${ availability.okMultipleBreak },
-                ok_long_break        = ${ availability.okLongBreak },
-                preferred_hour       = ${ availability.preferredHour },
-                preferred_break_hour = ${ availability.preferredBreakHour },
-                preferred_shift      = ${ availability.preferredShift }
-
-        WHERE   staff_id = ${ staffID }
-        AND     date     = ${ date }
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function deleteAvailabilityOnDateForID(
-    sql: SQL,
-    staffID: string,
-    date: string
-): Promise<Result<null>> {
+export async function deleteAllTels(sql: SQL): Promise<Result<null>> {
     type R = Array<{ _: number }>;
 
     const result: R = await sql`
         DELETE FROM
-                staff_availability
-
-        WHERE   staff_id = ${ staffID }
-        AND     date     = ${ date }
+                staff_tels
 
         RETURNING
                 1 AS "_"
     `;
 
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function setStaffRelationToShiftByShiftID(
-    sql: SQL,
-    staffID: string,
-    shiftID: number,
-    preference: number,
-    proficiency: number
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        INSERT INTO
-                staff_shifts
-        (
-                staff_id,
-                shift_id,
-                preference,
-                proficiency
-        )
-        VALUES
-        (
-                ${ staffID },
-                ${ shiftID },
-                ${ preference },
-                ${ proficiency }
-        )
-        ON CONFLICT
-        (
-                staff_id,
-                shift_id
-        )
-        DO UPDATE
-        SET     preference  = EXCLUDED.preference,
-                proficiency = EXCLUDED.proficiency
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function unsetStaffRelationToShiftByShiftID(
-    sql: SQL,
-    staffID: string,
-    shiftID: number
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        DELETE FROM
-                staff_shifts
-
-        WHERE   staff_id = ${ staffID }
-        AND     shift_id = ${ shiftID }
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function setStaffRelationToPositionByPositionID(
-    sql: SQL,
-    staffID: string,
-    positionID: number,
-    preference: number,
-    proficiency: number
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        INSERT INTO
-                staff_positions
-        (
-                staff_id,
-                position_id,
-                preference,
-                proficiency
-        )
-        VALUES
-        (
-                ${ staffID },
-                ${ positionID },
-                ${ preference },
-                ${ proficiency }
-        )
-        ON CONFLICT
-        (
-                staff_id,
-                position_id
-        )
-        DO UPDATE
-        SET     preference  = EXCLUDED.preference,
-                proficiency = EXCLUDED.proficiency
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function unsetStaffRelationToPositionByPositionID(
-    sql: SQL,
-    staffID: string,
-    positionID: number
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        DELETE FROM
-                staff_positions
-
-        WHERE   staff_id    = ${ staffID }
-        AND     position_id = ${ positionID }
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function setStaffRelationToStaffByStaffID(
-    sql: SQL,
-    staffID: string,
-    relatedStaffID: string,
-    preference: number
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        INSERT INTO
-                staff_peer_preferences
-        (
-                staff_a_id,
-                staff_b_id,
-                preference
-        )
-        VALUES
-        (
-                Least(${ staffID }::UUID, ${ relatedStaffID }::UUID),
-                Greatest(${ staffID }::UUID, ${ relatedStaffID }::UUID),
-                ${ preference }
-        )
-        ON CONFLICT
-        DO UPDATE
-        SET     preference = EXCLUDED.preference
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
-}
-
-export async function unsetStaffRelationToStaffByStaffID(
-    sql: SQL,
-    staffID: string,
-    relatedStaffID: string
-): Promise<Result<null>> {
-    type R = Array<{ _: number }>;
-
-    const result: R = await sql`
-        DELETE FROM
-                staff_peer_preferences
-
-        WHERE   staff_a_id = Least(${ staffID }::UUID, ${ relatedStaffID }::UUID)
-        AND     staff_b_id = Greatest(${ staffID }::UUID, ${ relatedStaffID }::UUID)
-
-        RETURNING
-                1 AS "_"
-    `;
-
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
+    return new Result<null>(result.length !== 0, null);
 }

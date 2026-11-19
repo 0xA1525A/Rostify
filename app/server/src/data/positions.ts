@@ -63,58 +63,6 @@ export async function getPositionByID(
     return new Result<Position>(true, result[0]);
 }
 
-export async function createPosition(
-    sql        : SQL,
-    newPosition: Omit<Position, "id">
-): Promise<Result<number>> {
-    type R = Array<{ id: number }>;
-
-     const result: R = await sql`
-        INSERT INTO
-                positions
-        (
-                unit_id,
-                name,
-                description,
-                physical_load,
-                mental_load,
-                risk_level,
-                minimum_staff,
-                target_staff,
-                maximum_staff,
-                minimum_sum_proficiency,
-                target_sum_proficiency,
-                maximum_sum_proficiency,
-                is_prioritising_staff_amount
-        )
-        VALUES
-        (
-                ${ newPosition.unitID },
-                ${ newPosition.name },
-                ${ newPosition.description },
-                ${ newPosition.physicalLoad },
-                ${ newPosition.mentalLoad },
-                ${ newPosition.riskLevel },
-                ${ newPosition.minimumStaff },
-                ${ newPosition.targetStaff },
-                ${ newPosition.maximumStaff },
-                ${ newPosition.minimumSumProficiency },
-                ${ newPosition.targetSumProficiency },
-                ${ newPosition.maximumSumProficiency },
-                ${ newPosition.isPrioritisingStaffAmount }
-        )
-
-        RETURNING
-                id
-    `;
-
-    if (result.length === 0) {
-        return new Result<number>(false, null);
-    }
-
-    return new Result<number>(true, result[0].id);
-}
-
 export async function getAllPositionPreviewsInUnitByID(
     sql   : SQL,
     unitID: number
@@ -173,7 +121,59 @@ export async function searchPositionPreviewsBySimilarNames(
     return new Result<R>(true, result);
 }
 
-export async function updatePositionByID(
+export async function createPosition(
+    sql        : SQL,
+    newPosition: Omit<Position, "id">
+): Promise<Result<number>> {
+    type R = Array<{ id: number }>;
+
+     const result: R = await sql`
+        INSERT INTO
+                positions
+        (
+                unit_id,
+                name,
+                description,
+                physical_load,
+                mental_load,
+                risk_level,
+                minimum_staff,
+                target_staff,
+                maximum_staff,
+                minimum_sum_proficiency,
+                target_sum_proficiency,
+                maximum_sum_proficiency,
+                is_prioritising_staff_amount
+        )
+        VALUES
+        (
+                ${ newPosition.unitID },
+                ${ newPosition.name },
+                ${ newPosition.description },
+                ${ newPosition.physicalLoad },
+                ${ newPosition.mentalLoad },
+                ${ newPosition.riskLevel },
+                ${ newPosition.minimumStaff },
+                ${ newPosition.targetStaff },
+                ${ newPosition.maximumStaff },
+                ${ newPosition.minimumSumProficiency },
+                ${ newPosition.targetSumProficiency },
+                ${ newPosition.maximumSumProficiency },
+                ${ newPosition.isPrioritisingStaffAmount }
+        )
+
+        RETURNING
+                id
+    `;
+
+    if (result.length === 0) {
+        return new Result<number>(false, null);
+    }
+
+    return new Result<number>(true, result[0].id);
+}
+
+export async function updatePositionByPositionID(
     sql        : SQL,
     positionID : number,
     newPosition: Omit<Position, "id">
@@ -247,9 +247,7 @@ export async function updatePositionByID(
     return new Result<Position>(true, result[0]);
 }
 
-export async function deleteAllPositions(
-    sql: SQL
-): Promise<Result<null>> {
+export async function deleteAllPositions(sql: SQL): Promise<Result<null>> {
     type R = Array<{ _: number }>;
 
     const result: R = await sql`
@@ -263,7 +261,7 @@ export async function deleteAllPositions(
     return new Result<null>(result.length !== 0, null);
 }
 
-export async function deletePositionByID(
+export async function deletePositionByPositionID(
     sql: SQL,
     positionID: number
 ): Promise<Result<string>> {

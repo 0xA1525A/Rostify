@@ -28,7 +28,7 @@ export async function getSessionByStaffID(
     return new Result<Session>(true, result[0]);
 }
 
-export async function getSessionTokenPrincipal(
+export async function getTokenPrincipalByToken(
     sql  : SQL,
     token: string
 ): Promise<Result<{ id: string, privilege: StaffPrivilege }>> {
@@ -56,7 +56,7 @@ export async function getSessionTokenPrincipal(
     return new Result<E>(true, result[0]);
 }
 
-export async function createSessionForStaffID(
+export async function createSessionByStaffID(
     sql    : SQL,
     staffID: string
 ): Promise<Result<string>> {
@@ -123,4 +123,18 @@ export async function deleteSessionByToken(
     }
 
     return new Result<string>(true, deleteResult[0].staffID);
+}
+
+export async function deleteAllSessions(sql: SQL): Promise<Result<null>> {
+    type R = Array<{ _: number }>;
+
+    const result: R = await sql`
+        DELETE FROM
+                active_sessions
+
+        RETURNING
+                1 AS "_"
+    `;
+
+    return new Result<null>(result.length !== 0, null);
 }

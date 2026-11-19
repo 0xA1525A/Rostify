@@ -1,14 +1,17 @@
 import cluster from "node:cluster";
 import os      from "node:os";
-import process from "node:process";
-
-import { Logger }       from "@service:logger/logger";
-import { normaliseEnv } from "@service:env/env";
 
 import { rostify } from "@:server";
-import { Result } from "@lib:templates/result";
-import { hasRostifyConqueredThisNetwork } from "@service:discovery/advertise";
-import { Nullable } from "@lib:types/nullable";
+
+import type { Result }  from "@lib:templates/result";
+import type { Nullable } from "@lib:types/nullable";
+
+import { Logger }          from "@service:logger/logger";
+import { normaliseOption } from "@service:normaliser/normaliser";
+import { discoverRostifyOnNetwork } from "@service:discovery/discover";
+import { advertiseRostifyOnNetwork, type RostifyAdvertisement } from "@service:discovery/advertise";
+
+const FALLBACK_PORT: number = 3000;
 
 async function main(): Promise<void> {
     const logger: Logger = new Logger();
@@ -16,19 +19,28 @@ async function main(): Promise<void> {
     logger.info("Running pre-initialisation process...");
 
     if (cluster.isPrimary) {
-        const isRostifyRunning: Result<string, null> = await hasRostifyConqueredThisNetwork({ logger });
-        const error: Nullable<string> = isRostifyRunning.getData();
+        const isRostifyRunning: Result<string> = await discoverRostifyOnNetwork({ logger });
+        const error           : Nullable<string> = isRostifyRunning.getData();
 
         if (error !== null) {
-            logger.error(error);
+            return;
+        }
 
-            process.exitCode = 1;
+        const port: number = normaliseOption<number>(Bun.env.PORT, Number.parseInt) ?? FALLBACK_PORT;
+
+        const advertiseResult: Result<RostifyAdvertisement | string> = await advertiseRostifyOnNetwork({
+            logger: logger,
+            port: port,
+            serverID: crypto.randomUUID()
+        });
+
+        if (!advertiseResult.isSuccess()) {
             return;
         }
 
         const availableParallelism: number = os.availableParallelism();
-        const maxInstanceCount    : number = normaliseEnv<number>(Bun.env.MAX_INSTANCE_COUNT, Number) ?? availableParallelism;
-        const minInstanceCount    : number = normaliseEnv<number>(Bun.env.MAX_INSTANCE_COUNT, Number) ?? 1;
+        const maxInstanceCount    : number = normaliseOption<number>(Bun.env.MAX_INSTANCE_COUNT, Number) ?? availableParallelism;
+        const minInstanceCount    : number = normaliseOption<number>(Bun.env.MAX_INSTANCE_COUNT, Number) ?? 1;
 
         const instanceToInitialise: number  = Math.max(Math.min(availableParallelism, maxInstanceCount), minInstanceCount);
         const useSingularNoun     : boolean = instanceToInitialise === 1;

@@ -7,21 +7,21 @@ import      { Response, type RFServerResponse } from "@lib:templates/response";
 import {
     createTask,
     deleteAllTasks,
-    deleteTaskByID,
+    deleteTaskByTaskID,
     getAllTasks,
-    getAllTasksInDay,
-    getTaskByID,
-    searchTasksBySimilarName,
-    updateTaskByID
+    getAllTasksByDay,
+    getTaskByTaskID,
+    searchTasksByTaskName,
+    updateTaskByTaskID
 } from "@data:tasks";
 
 import { validateAccessPermission } from "@service:permission/permission";
 
 import { type Task, validateTask } from "@model:tasks";
+import { WeekdayShortName } from "@lib:enums/datetime";
+import { validateDay } from "@model:datetime";
 
-export async function handleGetAllTasks(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetAllTasks(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -38,9 +38,7 @@ export async function handleGetAllTasks(
     return new Response(true, HTTPStatus.OK, allTasks).unwrap(d.set);
 }
 
-export async function handleGetTaskByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetTaskByTaskID(d: ServiceDependencies): Promise<RFServerResponse> {
     const taskID: string = d.params.taskID ?? '';
 
     if (Number.isNaN(Number.parseInt(taskID))) {
@@ -53,7 +51,7 @@ export async function handleGetTaskByID(
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const getTaskResult: Result<Task>   = await getTaskByID(d.sql, Number.parseInt(taskID));
+    const getTaskResult: Result<Task>   = await getTaskByTaskID(d.sql, Number.parseInt(taskID));
     const task         : Nullable<Task> = getTaskResult.getData();
 
     if (!getTaskResult.isSuccess() || task === null) {
@@ -63,9 +61,7 @@ export async function handleGetTaskByID(
     return new Response(true, HTTPStatus.OK, task).unwrap(d.set);
 }
 
-export async function handleSearchTasksByName(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleSearchTasksByName(d: ServiceDependencies): Promise<RFServerResponse> {
     const taskName: string = d.params.taskName ?? '';
 
     if (!taskName.trim()) {
@@ -80,7 +76,7 @@ export async function handleSearchTasksByName(
 
     type R = Array<Task>;
 
-    const searchTasksResult: Result<R>   = await searchTasksBySimilarName(d.sql, `%${ taskName }%`);
+    const searchTasksResult: Result<R>   = await searchTasksByTaskName(d.sql, `%${ taskName }%`);
     const tasks            : Nullable<R> = searchTasksResult.getData();
 
     if (!searchTasksResult.isSuccess() || tasks === null) {
@@ -90,9 +86,7 @@ export async function handleSearchTasksByName(
     return new Response(true, HTTPStatus.OK, tasks).unwrap(d.set);
 }
 
-export async function handleGetAllTasksInDay(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetAllTasksInDay(d: ServiceDependencies): Promise<RFServerResponse> {
     const taskDay: string = d.params.taskDay ?? '';
 
     if (!taskDay.trim()) {
@@ -105,9 +99,13 @@ export async function handleGetAllTasksInDay(
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
+    if (!validateDay(taskDay)) {
+        return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid day or malformed format.").unwrap(d.set);
+    }
+
     type R = Array<Task>;
 
-    const searchTasksResult: Result<R>   = await getAllTasksInDay(d.sql, taskDay);
+    const searchTasksResult: Result<R>   = await getAllTasksByDay(d.sql, taskDay as WeekdayShortName);
     const tasks            : Nullable<R> = searchTasksResult.getData();
 
     if (!searchTasksResult.isSuccess()) {
@@ -117,9 +115,7 @@ export async function handleGetAllTasksInDay(
     return new Response(true, HTTPStatus.OK, tasks).unwrap(d.set);
 }
 
-export async function handleCreateTask(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleCreateTask(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -152,9 +148,7 @@ export async function handleCreateTask(
     return new Response(true, HTTPStatus.CREATED, newTaskID).unwrap(d.set);
 }
 
-export async function handleUpdateTaskByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleUpdateTaskByTaskID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -167,7 +161,7 @@ export async function handleUpdateTaskByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Task ID.").unwrap(d.set);
     }
 
-    const getCurrentTaskResult: Result<Task>   = await getTaskByID(d.sql, Number.parseInt(targetTaskID));
+    const getCurrentTaskResult: Result<Task>   = await getTaskByTaskID(d.sql, Number.parseInt(targetTaskID));
     const oldTask             : Nullable<Task> = getCurrentTaskResult.getData();
 
     if (!getCurrentTaskResult.isSuccess() || oldTask === null) {
@@ -190,7 +184,7 @@ export async function handleUpdateTaskByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed task info.").unwrap(d.set);
     }
 
-    const updateTaskResult: Result<Task>   = await updateTaskByID(d.sql, Number.parseInt(targetTaskID), newTask);
+    const updateTaskResult: Result<Task>   = await updateTaskByTaskID(d.sql, Number.parseInt(targetTaskID), newTask);
     const updatedTask     : Nullable<Task> = updateTaskResult.getData();
 
     if (!updateTaskResult.isSuccess()) {
@@ -200,9 +194,7 @@ export async function handleUpdateTaskByID(
     return new Response(true, HTTPStatus.OK, updatedTask).unwrap(d.set);
 }
 
-export async function handleDeleteAllTasks(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteAllTasks(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -218,27 +210,25 @@ export async function handleDeleteAllTasks(
     return new Response(true, HTTPStatus.OK, "Successfully deleted all tasks.").unwrap(d.set);
 }
 
-export async function handleDeleteTaskByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteTaskByTaskID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetTaskID: string = d.params.unitID ?? '';
+    const targetTaskID: string = d.params.taskID ?? '';
 
     if (Number.isNaN(Number.parseInt(targetTaskID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing task ID.").unwrap(d.set);
     }
 
-    const deleteTaskResult: Result<string> = await deleteTaskByID(d.sql, Number.parseInt(targetTaskID));
+    const deleteTaskResult: Result<string> = await deleteTaskByTaskID(d.sql, Number.parseInt(targetTaskID));
     const deletedTaskName : Nullable<string> = deleteTaskResult.getData();
 
     if (!deleteTaskResult.isSuccess()) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to delete this task.").unwrap(d.set);
     }
 
-    return new Response(false, HTTPStatus.OK, `Successfully deleted task ${ deletedTaskName }.`).unwrap(d.set);
+    return new Response(true, HTTPStatus.OK, `Successfully deleted task ${ deletedTaskName }.`).unwrap(d.set);
 }

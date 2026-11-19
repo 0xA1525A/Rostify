@@ -1,41 +1,71 @@
 import {
          Bonjour,
     type Service,
-    type Browser
 }
 from "bonjour-service";
 
 import      { Result } from "@lib:templates/result";
 import type { Fn }     from "@lib:types/fn";
 
-import      { normaliseEnv } from "@service:env/env";
-import type { Logger }       from "@service:logger/logger";
+import      { normaliseOption } from "@service:normaliser/normaliser";
+import type { Logger }          from "@service:logger/logger";
 
-export interface HasRostifyConqueredThisNetworkDependencies {
-    logger: Logger;
+export interface AdvertisementDependencies {
+    logger  : Logger;
+    port    : number;
+    serverID: string;
 }
 
-export async function hasRostifyConqueredThisNetwork(d: HasRostifyConqueredThisNetworkDependencies): Promise<Result<string, null>> {
-    d.logger.debug("Looking for running Rostify Server instances on the network...");
+export interface RostifyAdvertisement {
+    stop(): Promise<void>;
+}
 
-    const FALLBACK_ROSTIFY_SERVICE_TYPE: string = "rostify";
-    const FALLBACK_DISCOVERY_TIMEOUT_MS: number = 5000;
+export async function advertiseRostifyOnNetwork(
+    d: AdvertisementDependencies
+): Promise<Result<RostifyAdvertisement | string>> {
+    d.logger.debug("Advertising Rostify Server on the network...");
 
-    const ROSTIFY_SERVICE_TYPE: string = normaliseEnv<string>(Bun.env.ROSTIFY_SERVICE_TYPE, String) ?? FALLBACK_ROSTIFY_SERVICE_TYPE;
-    const DISCOVERY_TIMEOUT   : number = normaliseEnv<number>(Bun.env.DISCOVERY_TIMEOUT_MS, Number) ?? FALLBACK_DISCOVERY_TIMEOUT_MS;
+    const FALLBACK_ROSTIFY_SERVICE_TYPE    : string = "rostify";
+    const FALLBACK_ADVERTISEMENT_TIMEOUT_MS: number = 5000;
+
+    const ROSTIFY_SERVICE_TYPE : string = normaliseOption<string>(Bun.env.ROSTIFY_SERVICE_TYPE, String) ?? FALLBACK_ROSTIFY_SERVICE_TYPE;
+    const ADVERTISEMENT_TIMEOUT: number = normaliseOption<number>(Bun.env.ADVERTISEMENT_TIMEOUT_MS, Number) ?? FALLBACK_ADVERTISEMENT_TIMEOUT_MS;
 
     const bonjour: Bonjour = new Bonjour();
 
-    const browser: Browser = bonjour.find({
-        type: ROSTIFY_SERVICE_TYPE,
-        protocol: "tcp"
+    const service: Service = bonjour.publish({
+        name    : `rostify-server/${ d.serverID }`,
+        type    : ROSTIFY_SERVICE_TYPE,
+        protocol: "tcp",
+        port    : d.port,
+        txt     : {
+            serverID: d.serverID
+        }
     });
 
-    type T = Result<string, null>;
+    let stopped: boolean = false;
+
+    const stopAdvertisement: Fn<[], Promise<void>> = async (): Promise<void> => {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+
+        await new Promise<void>((resolve) => {
+            service.stop((): void => {
+                bonjour.destroy();
+
+                resolve();
+            });
+        });
+    };
+
+    type T = Result<RostifyAdvertisement | string>;
 
     const resolveFunction: Fn<[Fn<[T | PromiseLike<T>], void>], void> = (resolve: Fn<[T | PromiseLike<T>], void>): void => {
         let completed: boolean = false;
-        let timer: ReturnType<typeof setTimeout>;
+        let timer: ReturnType<typeof setTimeout> | null = null;
 
         const finish: Fn<[T], void> = (result: T): void => {
             if (completed) {
@@ -44,45 +74,59 @@ export async function hasRostifyConqueredThisNetwork(d: HasRostifyConqueredThisN
 
             completed = true;
 
-            clearTimeout(timer);
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
 
-            browser.stop();
-            bonjour.destroy();
+            if (!result.isSuccess()) {
+                void stopAdvertisement().then(() => {
+                    resolve(result);
+                });
+
+                return;
+            }
 
             resolve(result);
         };
 
-        const handleFoundRostifyInNetwork: Fn<[Service], void> = (service: Service): void => {
-            const foundRostifyMessage: string = `An existing Rostify server was discovered: ${ service.name } (${ service.host }:${ service.port }).`;
+        const handleAdvertisementReady: Fn<[], void> = (): void => {
+            d.logger.info(`Rostify Server is now advertised on the network (${ service.name }).`);
 
-            d.logger.error(foundRostifyMessage);
+            const advertisement: RostifyAdvertisement = {
+                stop: stopAdvertisement
+            };
 
-            finish(new Result<string, null>(
+            finish(new Result<RostifyAdvertisement | string>(
                 true,
-                foundRostifyMessage
+                advertisement
             ));
-        }
+        };
 
-        const handleErrorDiscovering: Fn<[unknown], void> = (error: unknown): void => {
-            const errorDiscoveringMessage: string = `Unable to perform Bonjour discovery: ${ String(error) }`;
+        const handleAdvertisementError: Fn<[unknown], void> = (error: unknown): void => {
+            const errorAdvertisingMessage: string = `Unable to advertise Rostify Server: ${ String(error) }`;
 
-            d.logger.error(errorDiscoveringMessage);
+            d.logger.error(errorAdvertisingMessage);
 
-            finish(new Result<string, null>(
-                true,
-                errorDiscoveringMessage
+            finish(new Result<RostifyAdvertisement | string>(
+                false,
+                errorAdvertisingMessage
             ));
-        }
+        };
 
-        browser.on("up", handleFoundRostifyInNetwork);
-        browser.on("error", handleErrorDiscovering);
+        service.once("up", handleAdvertisementReady);
+        service.once("error", handleAdvertisementError);
 
         timer = setTimeout(() => {
-            d.logger.debug("There's no Rostify Server running here. This place is mine now. \\^0w0^/");
+            const advertisementTimeoutMessage: string = "Timed out while advertising Rostify Server.";
 
-            void finish(new Result<string, null>(false, null))
-        }, DISCOVERY_TIMEOUT);
-    }
+            d.logger.error(advertisementTimeoutMessage);
+
+            finish(new Result<RostifyAdvertisement | string>(
+                false,
+                advertisementTimeoutMessage
+            ));
+        }, ADVERTISEMENT_TIMEOUT);
+    };
 
     return await new Promise<T>(resolveFunction);
 }

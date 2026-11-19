@@ -7,20 +7,19 @@ import      { Response, type RFServerResponse } from "@lib:templates/response";
 import {
     createShift,
     deleteAllShifts,
-    deleteShiftByID,
+    deleteShiftByShiftID,
     getAllShifts,
-    getShiftByID,
-    searchShiftsBySimilarName,
-    updateShiftByID
+    getShiftByShiftID,
+    searchShiftsByShiftName,
+    updateShiftByShiftID
 } from "@data:shifts";
 
 import { validateAccessPermission } from "@service:permission/permission";
 
 import { type Shift, validateShift } from "@model:shifts";
 
-export async function handleGetAllShifts(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetAllShifts(d: ServiceDependencies
+): Promise<RFServerResponse>{
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -37,9 +36,7 @@ export async function handleGetAllShifts(
     return new Response(true, HTTPStatus.OK, allShifts).unwrap(d.set);
 }
 
-export async function handleGetShiftByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleGetShiftByID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -52,7 +49,7 @@ export async function handleGetShiftByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing shift ID.").unwrap(d.set);
     }
 
-    const getShiftResult: Result<Shift>   = await getShiftByID(d.sql, Number.parseInt(shiftID));
+    const getShiftResult: Result<Shift>   = await getShiftByShiftID(d.sql, Number.parseInt(shiftID));
     const shift         : Nullable<Shift> = getShiftResult.getData();
 
     if (!getShiftResult.isSuccess()) {
@@ -62,10 +59,7 @@ export async function handleGetShiftByID(
     return new Response(true, HTTPStatus.OK, shift).unwrap(d.set);
 }
 
-export async function handleSearchShiftsByName(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleSearchShiftsByName(d: ServiceDependencies): Promise<RFServerResponse> {
      const shiftName: string = d.params.shiftName ?? '';
 
     if (!shiftName.trim()) {
@@ -80,7 +74,7 @@ export async function handleSearchShiftsByName(
 
     type R = Array<Shift>;
 
-    const searchShiftsResult: Result<R>   = await searchShiftsBySimilarName(d.sql, `%${ shiftName }%`);
+    const searchShiftsResult: Result<R>   = await searchShiftsByShiftName(d.sql, `%${ shiftName }%`);
     const searchShifts      : Nullable<R> = searchShiftsResult.getData();
 
     if (!searchShiftsResult.isSuccess()) {
@@ -90,9 +84,7 @@ export async function handleSearchShiftsByName(
     return new Response(true, HTTPStatus.OK, searchShifts).unwrap(d.set);
 }
 
-export async function handleCreateShift(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleCreateShift(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -126,9 +118,7 @@ export async function handleCreateShift(
     return new Response(true, HTTPStatus.CREATED, newShiftID).unwrap(d.set);
 }
 
-export async function handleUpdateShiftByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleUpdateShiftByShiftID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -141,7 +131,7 @@ export async function handleUpdateShiftByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Shift ID.").unwrap(d.set);
     }
 
-    const getCurrentShiftResult: Result<Shift>   = await getShiftByID(d.sql, Number.parseInt(targetShiftID));
+    const getCurrentShiftResult: Result<Shift>   = await getShiftByShiftID(d.sql, Number.parseInt(targetShiftID));
     const oldShift             : Nullable<Shift> = getCurrentShiftResult.getData();
 
     if (!getCurrentShiftResult.isSuccess() || oldShift === null) {
@@ -165,7 +155,7 @@ export async function handleUpdateShiftByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed shift info.").unwrap(d.set);
     }
 
-    const updateShiftResult: Result<Shift>   = await updateShiftByID(d.sql, Number.parseInt(targetShiftID), newShift);
+    const updateShiftResult: Result<Shift>   = await updateShiftByShiftID(d.sql, Number.parseInt(targetShiftID), newShift);
     const updatedShift     : Nullable<Shift> = updateShiftResult.getData();
 
     if (!updateShiftResult.isSuccess()) {
@@ -175,9 +165,7 @@ export async function handleUpdateShiftByID(
     return new Response(true, HTTPStatus.OK, updatedShift).unwrap(d.set);
 }
 
-export async function handleDeleteAllShifts(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteAllShifts(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -193,9 +181,7 @@ export async function handleDeleteAllShifts(
     return new Response(true, HTTPStatus.OK, "Successfully deleted all shifts.").unwrap(d.set);
 }
 
-export async function handleDeleteShiftByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleDeleteShiftByShiftID(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -208,12 +194,12 @@ export async function handleDeleteShiftByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Shift ID.").unwrap(d.set);
     }
 
-    const deleteShiftResult: Result<string> = await deleteShiftByID(d.sql, Number.parseInt(targetShiftID));
+    const deleteShiftResult: Result<string> = await deleteShiftByShiftID(d.sql, Number.parseInt(targetShiftID));
     const deletedShiftName : Nullable<string> = deleteShiftResult.getData();
 
     if (!deleteShiftResult.isSuccess()) {
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "Unable to delete this shift.").unwrap(d.set);
     }
 
-    return new Response(false, HTTPStatus.OK, `Successfully deleted shift ${ deletedShiftName }.`).unwrap(d.set);
+    return new Response(true, HTTPStatus.OK, `Successfully deleted shift ${ deletedShiftName }.`).unwrap(d.set);
 }

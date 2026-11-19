@@ -7,26 +7,21 @@ import      { Response, type RFServerResponse } from "@lib:templates/response";
 import {
     createPosition,
     deleteAllPositions,
-    deletePositionByID,
+    deletePositionByPositionID,
     getAllPositionPreviews,
     getAllPositionPreviewsInUnitByID,
     getPositionByID,
     searchPositionPreviewsBySimilarNames,
-    updatePositionByID
+    updatePositionByPositionID
 } from "@data:positions";
-
 import { validateAccessPermission } from "@service:permission/permission";
-
 import {
     type Position,
     type PositionPreview,
          validatePosition
 } from "@model:positions";
 
-export async function handleGetAllPositionPreviews(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleGetAllPositionPreviews(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -43,10 +38,7 @@ export async function handleGetAllPositionPreviews(
     return new Response(true, HTTPStatus.OK, allPreviews).unwrap(d.set);
 }
 
-export async function handleGetPositionByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleGetPositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
     const positionID: string = d.params.positionID ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
@@ -69,10 +61,7 @@ export async function handleGetPositionByID(
     return new Response(true, HTTPStatus.OK, position).unwrap(d.set);
 }
 
-export async function handleGetAllPositionPreviewsInUnitByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleGetAllPositionPreviewsInUnitByUnitID(d: ServiceDependencies): Promise<RFServerResponse> {
     const unitID: string = d.params.unitID ?? '';
 
     if (!unitID.trim()) {
@@ -97,9 +86,7 @@ export async function handleGetAllPositionPreviewsInUnitByID(
     return new Response(true, HTTPStatus.OK, allPositions).unwrap(d.set);
 }
 
-export async function handleSearchPositionPreviewsByName(
-    d: ServiceDependencies
-): Promise<RFServerResponse> {
+export async function handleSearchPositionPreviewsByName(d: ServiceDependencies): Promise<RFServerResponse> {
     const positionName: string = d.params.positionName ?? '';
 
     if (!positionName.trim()) {
@@ -124,10 +111,7 @@ export async function handleSearchPositionPreviewsByName(
     return new Response(true, HTTPStatus.OK, positionPreviews).unwrap(d.set);
 }
 
-export async function handleCreatePosition(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleCreatePosition(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -168,10 +152,7 @@ export async function handleCreatePosition(
     return new Response(true, HTTPStatus.CREATED, newPositionID).unwrap(d.set);
 }
 
-export async function handleUpdatePositionByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleUpdatePositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
     const positionID: string = d.params.positionID ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
@@ -215,7 +196,7 @@ export async function handleUpdatePositionByID(
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed position info.").unwrap(d.set);
     }
 
-    const updatePositionResult: Result<Position>   = await updatePositionByID(d.sql, Number.parseInt(positionID), newPosition);
+    const updatePositionResult: Result<Position>   = await updatePositionByPositionID(d.sql, Number.parseInt(positionID), newPosition);
     const updatedPosition     : Nullable<Position> = updatePositionResult.getData();
 
     if (!updatePositionResult.isSuccess()) {
@@ -225,10 +206,7 @@ export async function handleUpdatePositionByID(
     return new Response(true, HTTPStatus.OK, updatedPosition).unwrap(d.set);
 }
 
-export async function handleDeleteAllPositions(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleDeleteAllPositions(d: ServiceDependencies): Promise<RFServerResponse> {
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
@@ -244,10 +222,7 @@ export async function handleDeleteAllPositions(
     return new Response(true, HTTPStatus.OK, "Successfully deleted all positions.").unwrap(d.set);
 }
 
-export async function handleDeletePositionByID(
-    d: ServiceDependencies
-): Promise<RFServerResponse>
-{
+export async function handleDeletePositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
     const positionID: string = d.params.positionID ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
@@ -260,7 +235,7 @@ export async function handleDeletePositionByID(
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const deletePositionResult : Result<string> = await deletePositionByID(d.sql, Number.parseInt(positionID));
+    const deletePositionResult : Result<string> = await deletePositionByPositionID(d.sql, Number.parseInt(positionID));
     const deletedPositionName: Nullable<string> = deletePositionResult.getData();
 
     if (!deletePositionResult.isSuccess()) {

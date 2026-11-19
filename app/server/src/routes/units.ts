@@ -1,28 +1,19 @@
 import { Elysia } from "elysia";
 
 import type { Fn } from "@lib:types/fn";
+import { handleCreateUnit, handleDeleteAllUnits, handleDeleteUnitByUnitID, handleGetAllUnits, handleGetUnitByUnitID, handleUpdateUnitByUnitID } from "@service:business/units";
+import { handleGetAllPositionPreviewsInUnitByUnitID } from "@service:business/positions";
 
-import {
-    handleCreateUnit,
-    handleDeleteAllUnits,
-    handleDeleteUnitByID,
-    handleGetAllUnits,
-    handleGetUnitByID,
-    handleSearchUnitsByName,
-    handleUpdateUnitByID
-} from "@service:business/units";
+type F = Fn<[unknown], unknown>;
 
-import { handleGetAllPositionPreviewsInUnitByID } from "@service:business/positions";
+export const unitRoutes = new Elysia({ prefix: "/units" })
+    .get("/",                  handleGetAllUnits as F)
+    .get("/:unitID",           handleGetUnitByUnitID as F)
+    .get("/:unitID/positions", handleGetAllPositionPreviewsInUnitByUnitID as F)
 
-export const unitRoutes = new Elysia({ prefix: "/unit" })
-    .get("/", handleGetAllUnits as Fn<[any], any>)
-    .get("/:unitID", handleGetUnitByID as Fn<[any], any>)
-    .get("/:unitID/positions", handleGetAllPositionPreviewsInUnitByID as Fn<[any], any>)
-    .get("/search/:unitName", handleSearchUnitsByName as Fn<[any], any>)
+    .post("/", handleCreateUnit as F)
 
-    .post("/", handleCreateUnit as Fn<[any], any>)
+    .patch("/:unitID", handleUpdateUnitByUnitID as F)
 
-    .patch("/:unitID", handleUpdateUnitByID as Fn<[any], any>)
-
-    .delete("/", handleDeleteAllUnits as Fn<[any], any>)
-    .delete("/:unitID", handleDeleteUnitByID as Fn<[any], any>);
+    .delete("/",        handleDeleteAllUnits as F)
+    .delete("/:unitID", handleDeleteUnitByUnitID as F)

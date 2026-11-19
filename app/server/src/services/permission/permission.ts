@@ -3,7 +3,7 @@ import type { SQL } from "bun";
 import type { Nullable } from "@lib:types/nullable";
 import      { Result }   from "@lib:templates/result";
 
-import { getSessionTokenPrincipal } from "@data:sessions";
+import { getTokenPrincipalByToken } from "@data:sessions";
 
 import { getClientSessionToken } from "@service:auth/sessions";
 
@@ -52,7 +52,7 @@ export async function validateAccessPermission(
         privilege: StaffPrivilege
     };
 
-    const getPrincipalResult: Result<R>   = await getSessionTokenPrincipal(sql, token);
+    const getPrincipalResult: Result<R>   = await getTokenPrincipalByToken(sql, token);
     const principal         : Nullable<R> = getPrincipalResult.getData()
 
     if (!getPrincipalResult.isSuccess() || principal === null) {

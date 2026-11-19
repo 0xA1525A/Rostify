@@ -27,7 +27,7 @@ export async function getAllShifts(sql: SQL): Promise<Result<Array<Shift>>> {
     return new Result<R>(true, result);
 }
 
-export async function getShiftByID(sql: SQL, shiftID: number): Promise<Result<Shift>> {
+export async function getShiftByShiftID(sql: SQL, shiftID: number): Promise<Result<Shift>> {
     type R = Array<Shift>;
 
     const result: R = await sql`
@@ -52,7 +52,7 @@ export async function getShiftByID(sql: SQL, shiftID: number): Promise<Result<Sh
     return new Result<Shift>(true, result[0]);
 }
 
-export async function searchShiftsBySimilarName(
+export async function searchShiftsByShiftName(
     sql: SQL,
     shiftName: string
 ): Promise<Result<Array<Shift>>> {
@@ -116,7 +116,7 @@ export async function createShift(sql: SQL, newShift: Omit<Shift, "id">): Promis
     return new Result<number>(true, result[0].id);
 }
 
-export async function updateShiftByID(sql: SQL, shiftID: number, newShift: Omit<Shift, "id">): Promise<Result<Shift>> {
+export async function updateShiftByShiftID(sql: SQL, shiftID: number, newShift: Omit<Shift, "id">): Promise<Result<Shift>> {
     type R = Array<Shift>;
 
     const result: R = await sql`
@@ -161,14 +161,10 @@ export async function deleteAllShifts(sql: SQL): Promise<Result<null>> {
                 1 AS "_"
     `;
 
-    if (result.length === 0) {
-        return new Result<null>(false, null);
-    }
-
-    return new Result<null>(true, null);
+    return new Result<null>(result.length !== 0, null);
 }
 
-export async function deleteShiftByID(sql: SQL, shiftID: number): Promise<Result<string>> {
+export async function deleteShiftByShiftID(sql: SQL, shiftID: number): Promise<Result<string>> {
     type R = Array<{ name: string }>;
 
     const result: R = await sql`
