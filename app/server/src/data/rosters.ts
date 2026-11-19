@@ -8,8 +8,8 @@ export async function getAllRosterRecords(sql: SQL): Promise<Result<Array<Roster
     type R = Array<RosterRecord>;
 
     const result: R = await sql`
-        SELECT  id,
-                date,
+        SELECT  id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
 
@@ -31,8 +31,8 @@ export async function getRosterRecordsByDate(sql: SQL, date: string): Promise<Re
     type R = Array<RosterRecord>;
 
     const result: R = await sql`
-        SELECT  id,
-                date,
+        SELECT  id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
 
@@ -55,8 +55,8 @@ export async function getRosterRecordsByStaffID(sql: SQL, staffID: string): Prom
     type R = Array<RosterRecord>;
 
     const result: R = await sql`
-        SELECT  id,
-                date,
+        SELECT  id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
 
@@ -83,8 +83,8 @@ export async function getRosterRecordByDateAndStaffID(
     type R = Array<RosterRecord>;
 
     const result: R = await sql`
-        SELECT  id,
-                date,
+        SELECT  id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
 
@@ -105,8 +105,8 @@ export async function getRosterRecordByID(sql: SQL, rosterRecordID: number): Pro
     type R = Array<RosterRecord>;
 
     const result: R = await sql`
-        SELECT  id,
-                date,
+        SELECT  id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
 
@@ -126,8 +126,8 @@ export async function getAllRosterPunches(sql: SQL): Promise<Result<Array<Roster
     type R = Array<RosterPunch>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 clock_event      AS "clockEvent"
 
         FROM    roster_punches
@@ -147,8 +147,8 @@ export async function getRosterPunchesByRosterRecordID(sql: SQL, rosterRecordID:
     type R = Array<RosterPunch>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 clock_event      AS "clockEvent"
 
         FROM    roster_punches
@@ -170,8 +170,8 @@ export async function getRosterPunchesByDate(sql: SQL, date: string): Promise<Re
     type R = Array<RosterPunch>;
 
     const result: R = await sql`
-        SELECT  p.roster_record_id AS "rosterRecordID",
-                p.date_time        AS "dateTime",
+        SELECT  p.roster_record_id::int AS "rosterRecordID",
+                to_char(p.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 p.clock_event      AS "clockEvent"
 
         FROM    roster_punches  AS p
@@ -221,7 +221,7 @@ export async function createRosterRecord(
         SET     shift_id = EXCLUDED.shift_id
 
         RETURNING
-                id
+                id::int AS "id"
     `;
 
     if (result.length === 0) {
@@ -248,8 +248,8 @@ export async function updateRosterRecordByDateAndStaffID(
         AND     staff_id = ${ staffID }
 
         RETURNING
-                id,
-                date,
+                id::int AS "id",
+                date::text AS "date",
                 staff_id AS "staffID",
                 shift_id AS "shiftID"
     `;
@@ -372,7 +372,7 @@ export async function getDailyRosterByDate(
     type R = Array<DailyRosterEntry>;
 
     const result: R = await sql`
-        SELECT  r.id,
+        SELECT  r.id::int AS "id",
                 r.date::text                                    AS "date",
                 r.staff_id                                      AS "staff_id",
                 s.name || '/' || COALESCE(u.name, 'unassigned')  AS "shift"
@@ -424,8 +424,8 @@ export async function getRosterPunchesByDateAndStaffID(
     type R = Array<RosterPunch>;
 
     const result: R = await sql`
-        SELECT  p.roster_record_id  AS "rosterRecordID",
-                p.date_time         AS "dateTime",
+        SELECT  p.roster_record_id::int  AS "rosterRecordID",
+                to_char(p.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 p.clock_event       AS "clockEvent"
 
         FROM    roster_punches  AS p

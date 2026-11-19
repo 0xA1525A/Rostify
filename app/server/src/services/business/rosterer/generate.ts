@@ -113,20 +113,40 @@ function planPunches(
     const punches: Array<PendingPunch> = [];
     const start: string = timestampAt(date, shift.fromTime);
     const end: string = timestampAt(addDays(date, shift.isOvernight ? 1 : 0), shift.toTime);
+    const startMs: number = new Date(start).getTime();
+    const endMs: number = new Date(end).getTime();
+    const totalMinutes: number = (endMs - startMs) / 60_000;
 
     pushPunch(punches, recordKey, start, "in");
 
-    const breakCount: number = availability.okMultipleBreak ? 2 : 1;
-    const breakHours: number = availability.preferredBreakHour ?? 1;
-    const totalMinutes: number = (new Date(end).getTime() - new Date(start).getTime()) / 60_000;
-    const intervalMinutes: number = totalMinutes / (breakCount + 1);
+    let breakCount: number = availability.okMultipleBreak ? 2 : 1;
+    let breakMinutes: number = (availability.preferredBreakHour ?? 1) * 60;
 
-    for (let index = 1; index <= breakCount; index += 1) {
-        const breakStart: string = new Date(new Date(start).getTime() + intervalMinutes * index * 60_000).toISOString();
-        const breakEnd: string = new Date(new Date(breakStart).getTime() + breakHours * 60 * 60_000).toISOString();
+    // Keep punches sequential and inside the shift: shrink or drop breaks when
+    // they would overlap or leave no working time.
+    while (breakCount > 0 && totalMinutes <= breakCount * breakMinutes * 2) {
+        if (breakCount > 1) {
+            breakCount -= 1;
+            continue;
+        }
 
-        pushPunch(punches, recordKey, breakStart, "out");
-        pushPunch(punches, recordKey, breakEnd, "in");
+        breakMinutes = Math.floor(totalMinutes / 3);
+
+        if (breakMinutes <= 0) {
+            breakCount = 0;
+        }
+
+        break;
+    }
+
+    const workMinutes: number = (totalMinutes - breakCount * breakMinutes) / (breakCount + 1);
+    let cursor: number = startMs;
+
+    for (let index = 0; index < breakCount; index += 1) {
+        cursor += workMinutes * 60_000;
+        pushPunch(punches, recordKey, new Date(cursor).toISOString(), "out");
+        cursor += breakMinutes * 60_000;
+        pushPunch(punches, recordKey, new Date(cursor).toISOString(), "in");
     }
 
     pushPunch(punches, recordKey, end, "out");

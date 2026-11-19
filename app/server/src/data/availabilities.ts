@@ -8,11 +8,11 @@ export async function getAllAvailabilities(sql: SQL): Promise<Result<Array<Staff
     type R = Array<StaffAvailability>;
 
     const result: R = await sql`
-        SELECT  date,
+        SELECT  date::text          AS "date",
                 staff_id            AS "staffID",
                 from_time           AS "fromTime",
                 to_time             AS "toTime",
-                to_date             AS "toDate",
+                to_date::text       AS "toDate",
                 is_flexible         AS "isFlexible",
                 ok_overtime         AS "okOvertime",
                 ok_multiple_break   AS "okMultipleBreak",
@@ -39,11 +39,11 @@ export async function getAvailabilitiesByStaffID(sql: SQL, staffID: string): Pro
     type R = Array<StaffAvailability>;
 
     const result: R = await sql`
-        SELECT  date,
+        SELECT  date::text          AS "date",
                 staff_id            AS "staffID",
                 from_time           AS "fromTime",
                 to_time             AS "toTime",
-                to_date             AS "toDate",
+                to_date::text       AS "toDate",
                 is_flexible         AS "isFlexible",
                 ok_overtime         AS "okOvertime",
                 ok_multiple_break   AS "okMultipleBreak",
@@ -71,11 +71,11 @@ export async function getAvailabilitiesByDate(sql: SQL, date: string): Promise<R
     type R = Array<StaffAvailability>;
 
     const result: R = await sql`
-        SELECT  date,
+        SELECT  date::text          AS "date",
                 staff_id            AS "staffID",
                 from_time           AS "fromTime",
                 to_time             AS "toTime",
-                to_date             AS "toDate",
+                to_date::text       AS "toDate",
                 is_flexible         AS "isFlexible",
                 ok_overtime         AS "okOvertime",
                 ok_multiple_break   AS "okMultipleBreak",
@@ -103,11 +103,11 @@ export async function getAvailabilityByDateAndStaffID(sql: SQL, staffID: string,
     type R = Array<StaffAvailability>;
 
     const result: R = await sql`
-        SELECT  date,
+        SELECT  date::text          AS "date",
                 staff_id            AS "staffID",
                 from_time           AS "fromTime",
                 to_time             AS "toTime",
-                to_date             AS "toDate",
+                to_date::text       AS "toDate",
                 is_flexible         AS "isFlexible",
                 ok_overtime         AS "okOvertime",
                 ok_multiple_break   AS "okMultipleBreak",

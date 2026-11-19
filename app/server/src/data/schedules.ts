@@ -8,8 +8,8 @@ export async function getAllSchedulePositions(sql: SQL): Promise<Result<Array<Sc
     type R = Array<SchedulePosition>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 position_id      AS "positionID"
 
         FROM    schedule_positions
@@ -33,8 +33,8 @@ export async function getSchedulePositionsByRosterRecordID(
     type R = Array<SchedulePosition>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 position_id      AS "positionID"
 
         FROM    schedule_positions
@@ -57,7 +57,7 @@ export async function getSchedulePositionsByDate(sql: SQL, date: string): Promis
 
     const result: R = await sql`
         SELECT  s.roster_record_id AS "rosterRecordID",
-                s.date_time        AS "dateTime",
+                to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.position_id      AS "positionID"
 
         FROM    schedule_positions  AS s
@@ -88,7 +88,7 @@ export async function getSchedulePositionsByDateAndStaffID(
 
     const result: R = await sql`
         SELECT  s.roster_record_id AS "rosterRecordID",
-                s.date_time        AS "dateTime",
+                to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.position_id      AS "positionID"
 
         FROM    schedule_positions  AS s
@@ -114,8 +114,8 @@ export async function getAllScheduleTasks(sql: SQL): Promise<Result<Array<Schedu
     type R = Array<ScheduleTask>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 task_id          AS "taskID"
 
         FROM    schedule_tasks
@@ -139,8 +139,8 @@ export async function getScheduleTasksByRosterRecordID(
     type R = Array<ScheduleTask>;
 
     const result: R = await sql`
-        SELECT  roster_record_id AS "rosterRecordID",
-                date_time        AS "dateTime",
+        SELECT  roster_record_id::int AS "rosterRecordID",
+                to_char(date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 task_id          AS "taskID"
 
         FROM    schedule_tasks
@@ -163,7 +163,7 @@ export async function getScheduleTasksByDate(sql: SQL, date: string): Promise<Re
 
     const result: R = await sql`
         SELECT  s.roster_record_id AS "rosterRecordID",
-                s.date_time        AS "dateTime",
+                to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.task_id          AS "taskID"
 
         FROM    schedule_tasks      AS s
@@ -194,7 +194,7 @@ export async function getScheduleTasksByDateAndStaffID(
 
     const result: R = await sql`
         SELECT  s.roster_record_id AS "rosterRecordID",
-                s.date_time        AS "dateTime",
+                to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.task_id          AS "taskID"
 
         FROM    schedule_tasks      AS s

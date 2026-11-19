@@ -74,7 +74,7 @@ export async function getHistoricalPositionRows(
 
     const result: R = await sql`
         SELECT  r.staff_id          AS "staffID",
-                sp.date_time::text  AS "dateTime",
+                to_char(sp.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 sp.position_id      AS "positionID"
 
         FROM    schedule_positions  AS sp
