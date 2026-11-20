@@ -7,6 +7,7 @@ import {
     PositiveIntegerSchema,
     RatingSchema
 } from "@model:common";
+import { Nullable } from "@lib:types/nullable";
 
 export const BasicPositionInfo = {
     id          : PositiveIntegerSchema,
@@ -49,9 +50,9 @@ export const validatePosition = (value: unknown): value is Position => {
         return false;
     }
 
-    const minimum: number | null = value.minimumSumProficiency;
-    const target : number | null = value.targetSumProficiency;
-    const maximum: number | null = value.maximumSumProficiency;
+    const minimum: Nullable<number> = value.minimumSumProficiency;
+    const target : Nullable<number> = value.targetSumProficiency;
+    const maximum: Nullable<number> = value.maximumSumProficiency;
 
     if (minimum !== null && maximum === null) {
         return false;

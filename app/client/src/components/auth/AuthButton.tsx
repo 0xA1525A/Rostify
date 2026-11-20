@@ -1,7 +1,7 @@
 export interface AuthButtonProps {
     buttonType: "submit" | "reset" | "button";
     label: string;
-    action?: () => any;
+    action?: () => void;
 }
 
 export default function AuthButton({ buttonType, label, action }: AuthButtonProps): React.JSX.Element {
@@ -18,7 +18,7 @@ export default function AuthButton({ buttonType, label, action }: AuthButtonProp
     }
 
     return (
-        <button className={ buttonClassNames } type={ buttonType } onClick={ void action }>
+        <button className={ buttonClassNames } type={ buttonType } onClick={ action }>
             { label }
         </button>
     );

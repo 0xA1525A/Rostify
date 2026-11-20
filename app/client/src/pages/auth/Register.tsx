@@ -11,7 +11,7 @@ export default function Register(): React.JSX.Element {
 
         const formData = new FormData(e.target);
 
-        type T = FormDataEntryValue;
+        type T = FormDataEntryValue | null;
 
         const username: T = formData.get("username");
         const password: T = formData.get("password");
@@ -20,7 +20,7 @@ export default function Register(): React.JSX.Element {
     }
 
     let error = false;
-    let staffList = [{ label: "Natthakit Thawaichai", value: "1" }, { label: "1", value: "1" }];
+    let staffList = [{ label: "--- กรุณาเลือกชื่อของคุณ ---", value: "" }, { label: "อาร์ต ณัฐกิตติ์ ถวายชัย", value: "1" }, { label: "ปอนด์ สมรัก รังศรี", value: "1" }];
 
     return (
         <PageWrapper layoutType="centered">

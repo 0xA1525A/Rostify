@@ -82,7 +82,7 @@ export async function rostify(): Promise<void> {
     };
 
     setTimeout(async (): Promise<void> => {
-        await app
+        app
         .decorate(decorations)
         .use(allowOrigin)
         .use(requestLogger(logger))

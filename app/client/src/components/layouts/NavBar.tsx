@@ -87,7 +87,7 @@ export interface NavBarProps {
 
 export default function NavBar({ userPrivilege }: NavBarProps): React.JSX.Element {
     return (
-        <aside className="bg-linear-to-b from-blue-400 to-blue-600 h-full w-[20dvw] rounded-3xl shadow-blue-600 shadow-2xl p-4 overflow-scroll">
+        <aside className="bg-linear-to-b from-blue-400 to-blue-600 h-full w-[22.5dvw] min-w-75 rounded-3xl shadow-blue-600 shadow-2xl p-4 overflow-scroll">
             <BrandContainer />
 
             <NavBar_Home />

@@ -1,7 +1,7 @@
 import { FormatRegistry, Type } from "@sinclair/typebox";
-import type { TSchema }        from "@sinclair/typebox";
-import { TypeCompiler }        from "@sinclair/typebox/compiler";
-import type { TypeCheck }      from "@sinclair/typebox/compiler";
+import type { TSchema }         from "@sinclair/typebox";
+import { TypeCompiler }         from "@sinclair/typebox/compiler";
+import type { TypeCheck }       from "@sinclair/typebox/compiler";
 
 FormatRegistry.Set("uuid", (value: string): boolean => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value));
 FormatRegistry.Set("date", (value: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)));

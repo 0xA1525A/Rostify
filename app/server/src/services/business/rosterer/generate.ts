@@ -17,6 +17,7 @@ import type {
     RosterGenerationInput,
     RosterGenerationOutput
 } from "@service:business/rosterer/types";
+import { Option } from "@lib:types/option";
 
 const DEFAULT_FAIRNESS_TOLERANCE: number = 0.05;
 const MIN_REST_HOURS: number = 11;
@@ -155,7 +156,7 @@ export function planPunches(
 function eligibleShifts(
     availability: StaffAvailability,
     input: RosterGenerationInput,
-    previousShift: Shift | undefined,
+    previousShift: Option<Shift>,
     previousDate: string,
     consecutiveDays: number,
     constraints: Array<RosterConstraint>
@@ -281,7 +282,7 @@ export function generateRoster(input: RosterGenerationInput): Result<RosterGener
 
         constraints.push(...relationConstraints);
 
-        const previousShift: Shift | undefined = previousByStaff.get(availability.staffID);
+        const previousShift: Option<Shift> = previousByStaff.get(availability.staffID);
         const consecutiveDays: number = consecutiveWorkedDays(input, availability.staffID, previousDate);
         const candidates: Array<Shift> = eligibleShifts(
             availability,
