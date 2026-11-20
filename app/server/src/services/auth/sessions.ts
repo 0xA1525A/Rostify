@@ -9,8 +9,18 @@ import { Response, RFServerResponse } from "@lib:templates/response";
 
 import { Staff, StaffPrivilege } from "@model:staff";
 
-export function getClientSessionToken(headers: any): Nullable<string> {
-    return headers?.["x-rostify-session-token"] ?? null;
+export function getClientSessionToken(headers: unknown): Nullable<string> {
+    if (typeof headers !== "object" || headers === null) {
+        return null;
+    }
+
+    if (!("x-rostify-session-token" in headers)) {
+        return null;
+    }
+
+    const token: unknown = Reflect.get(headers, "x-rostify-session-token");
+
+    return typeof token === "string" ? token : null;
 }
 
 export async function handleGetStaffByToken(d: ServiceDependencies): Promise<RFServerResponse> {

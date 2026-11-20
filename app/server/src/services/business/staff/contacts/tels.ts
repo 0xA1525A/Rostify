@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { readString, toRecord } from "@lib:templates/request_values";
 import { Nullable } from "@lib:types/nullable";
 import { validateAccessPermission } from "@service:permission/permission";
 
@@ -59,9 +60,12 @@ export async function handleUpdateTelByTelAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const oldTel       : string = d.params?.tel ?? d.body?.oldTel ?? '';
-    const newTel       : string = d.body?.newTel ?? d.body?.tel ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const oldTel       : string = readString(params, "tel") ?? readString(body, "oldTel") ?? '';
+    const newTel       : string = readString(body, "newTel") ?? readString(body, "tel") ?? '';
 
     if (targetStaffID.trim() === "" || oldTel.trim() === "" || newTel.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or telephone number.").unwrap(d.set);
@@ -87,8 +91,11 @@ export async function handleDeleteTelByTelAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const tel          : string = d.params?.tel ?? d.body?.tel ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const tel          : string = readString(params, "tel") ?? readString(body, "tel") ?? '';
 
     if (targetStaffID.trim() === "" || tel.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or telephone number.").unwrap(d.set);
@@ -113,7 +120,9 @@ export async function handleGetTelsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID in URL.").unwrap(d.set);
@@ -144,8 +153,11 @@ export async function handleGetTelsByStaffID(
 export async function handleAddTel(
     d: ServiceDependencies
 ): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const tel: string = d.body?.tel ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const tel: string = readString(body, "tel") ?? '';
 
     if (targetStaffID.trim() === "" || tel.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or telephone number.").unwrap(d.set);
@@ -170,9 +182,12 @@ export async function handleAddTel(
 export async function handleUpdateTel(
     d: ServiceDependencies
 ): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const tel: string = d.params?.tel ?? d.body?.oldTel ?? '';
-    const newTel: string = d.body?.newTel ?? d.body?.tel ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const tel: string = readString(params, "tel") ?? readString(body, "oldTel") ?? '';
+    const newTel: string = readString(body, "newTel") ?? readString(body, "tel") ?? '';
 
     if (targetStaffID.trim() === "" || tel.trim() === "" || newTel.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or telephone number.").unwrap(d.set);
@@ -196,8 +211,11 @@ export async function handleUpdateTel(
 export async function handleDeleteTelByID(
     d: ServiceDependencies
 ): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const tel: string = d.params?.tel ?? d.body?.tel ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const tel: string = readString(params, "tel") ?? readString(body, "tel") ?? '';
 
     if (targetStaffID.trim() === "" || tel.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or telephone number.").unwrap(d.set);

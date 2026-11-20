@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import type { Result } from "@lib:templates/result";
 import type { Nullable } from "@lib:types/nullable";
 import type { ServiceDependencies } from "@lib:templates/service_deps";
+import { toRecord } from "@lib:templates/request_values";
 import { Response, type RFServerResponse } from "@lib:templates/response";
 
 import { validateAccessPermission } from "@service:permission/permission";
@@ -29,11 +30,12 @@ function parseID(value: unknown): Nullable<number> {
 }
 
 function readConflictBody(d: ServiceDependencies): Nullable<PositionConflict> {
-    const candidate: unknown = {
-        positionAID       : parseID(d.body?.positionAID),
-        positionBID       : parseID(d.body?.positionBID),
-        conflictDurationHr: Number(d.body?.conflictDurationHr),
-        severity          : Number(d.body?.severity)
+    const body     : Record<string, unknown> = toRecord(d.body);
+    const candidate: unknown                 = {
+        positionAID       : parseID(body.positionAID),
+        positionBID       : parseID(body.positionBID),
+        conflictDurationHr: Number(body.conflictDurationHr),
+        severity          : Number(body.severity)
     };
 
     return validatePositionConflict(candidate) ? candidate : null;
@@ -61,8 +63,9 @@ export async function handleGetAllPositionConflicts(d: ServiceDependencies): Pro
 }
 
 export async function handleGetPositionConflictByIDs(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionAID: Nullable<number> = parseID(d.params?.positionAID);
-    const positionBID: Nullable<number> = parseID(d.params?.positionBID);
+    const params     : Record<string, unknown> = toRecord(d.params);
+    const positionAID: Nullable<number>        = parseID(params.positionAID);
+    const positionBID: Nullable<number>        = parseID(params.positionBID);
 
     if (positionAID === null || positionBID === null) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position IDs.").unwrap(d.set);
@@ -83,7 +86,8 @@ export async function handleGetPositionConflictByIDs(d: ServiceDependencies): Pr
 }
 
 export async function handleGetConflictsFromPosition(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionAID: Nullable<number> = parseID(d.params?.positionAID);
+    const params     : Record<string, unknown> = toRecord(d.params);
+    const positionAID: Nullable<number>        = parseID(params.positionAID);
 
     if (positionAID === null) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position ID.").unwrap(d.set);
@@ -104,7 +108,8 @@ export async function handleGetConflictsFromPosition(d: ServiceDependencies): Pr
 }
 
 export async function handleGetConflictsToPosition(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionBID: Nullable<number> = parseID(d.params?.positionBID);
+    const params     : Record<string, unknown> = toRecord(d.params);
+    const positionBID: Nullable<number>        = parseID(params.positionBID);
 
     if (positionBID === null) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position ID.").unwrap(d.set);
@@ -149,8 +154,10 @@ export async function handleCreatePositionConflict(d: ServiceDependencies): Prom
 }
 
 export async function handleUpdatePositionConflict(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionAID: Nullable<number> = parseID(d.params?.positionAID);
-    const positionBID: Nullable<number> = parseID(d.params?.positionBID);
+    const params     : Record<string, unknown> = toRecord(d.params);
+    const body       : Record<string, unknown> = toRecord(d.body);
+    const positionAID: Nullable<number>        = parseID(params.positionAID);
+    const positionBID: Nullable<number>        = parseID(params.positionBID);
 
     if (positionAID === null || positionBID === null) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position IDs.").unwrap(d.set);
@@ -170,8 +177,8 @@ export async function handleUpdatePositionConflict(d: ServiceDependencies): Prom
     const newConflict: PositionConflict = {
         positionAID       : positionAID,
         positionBID       : positionBID,
-        conflictDurationHr: Number(d.body?.conflictDurationHr ?? oldConflict.conflictDurationHr),
-        severity          : Number(d.body?.severity ?? oldConflict.severity)
+        conflictDurationHr: Number(body.conflictDurationHr ?? oldConflict.conflictDurationHr),
+        severity          : Number(body.severity ?? oldConflict.severity)
     };
 
     if (validatePositionConflict(newConflict) === false) {
@@ -203,8 +210,9 @@ export async function handleDeleteAllPositionConflicts(d: ServiceDependencies): 
 }
 
 export async function handleDeletePositionConflictByIDs(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionAID: Nullable<number> = parseID(d.params?.positionAID);
-    const positionBID: Nullable<number> = parseID(d.params?.positionBID);
+    const params     : Record<string, unknown> = toRecord(d.params);
+    const positionAID: Nullable<number>        = parseID(params.positionAID);
+    const positionBID: Nullable<number>        = parseID(params.positionBID);
 
     if (positionAID === null || positionBID === null) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position IDs.").unwrap(d.set);

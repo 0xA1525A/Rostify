@@ -69,9 +69,9 @@ export async function rostify(): Promise<void> {
 
     logger.debug("Connected to database.");
 
-    const allowOrigin: any = cors({ origin: true });
-    const app        : any = new Elysia({ prefix: "/api" });
-    const decorations: Record<string, any> = {
+    const allowOrigin = cors({ origin: true });
+    const app         = new Elysia({ prefix: "/api" });
+    const decorations: Record<string, unknown> = {
         sql        : sql.getData(),
         logger     : logger,
         hashOptions: {
@@ -85,7 +85,7 @@ export async function rostify(): Promise<void> {
         await app
         .decorate(decorations)
         .use(allowOrigin)
-        .use(requestLogger())
+        .use(requestLogger(logger))
         .use(healthRoutes)
         .use(authRoutes)
         .use(staffRoutes)

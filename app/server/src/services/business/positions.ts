@@ -5,6 +5,14 @@ import type { ServiceDependencies }             from "@lib:templates/service_dep
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
 import {
+    readBoolean,
+    readInteger,
+    readNullableInteger,
+    readString,
+    toRecord
+} from "@lib:templates/request_values";
+
+import {
     createPosition,
     deleteAllPositions,
     deletePositionByPositionID,
@@ -39,7 +47,8 @@ export async function handleGetAllPositionPreviews(d: ServiceDependencies): Prom
 }
 
 export async function handleGetPositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionID: string = d.params.positionID ?? '';
+    const params    : Record<string, unknown> = toRecord(d.params);
+    const positionID: string                  = readString(params, "positionID") ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing position ID.").unwrap(d.set);
@@ -62,7 +71,8 @@ export async function handleGetPositionByPositionID(d: ServiceDependencies): Pro
 }
 
 export async function handleGetAllPositionPreviewsInUnitByUnitID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const unitID: string = d.params.unitID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const unitID: string                  = readString(params, "unitID") ?? '';
 
     if (!unitID.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing unit ID.").unwrap(d.set);
@@ -87,7 +97,8 @@ export async function handleGetAllPositionPreviewsInUnitByUnitID(d: ServiceDepen
 }
 
 export async function handleSearchPositionPreviewsByName(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionName: string = d.params.positionName ?? '';
+    const params      : Record<string, unknown> = toRecord(d.params);
+    const positionName: string                  = readString(params, "positionName") ?? '';
 
     if (!positionName.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing position name.").unwrap(d.set);
@@ -112,33 +123,33 @@ export async function handleSearchPositionPreviewsByName(d: ServiceDependencies)
 }
 
 export async function handleCreatePosition(d: ServiceDependencies): Promise<RFServerResponse> {
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const newPosition: Position = {
+    const newPosition: unknown = {
         id          : 0,
-        unitID      : d.body.unitID       ?? '',
-        unitName    : d.body.unitName     ?? '',
-        name        : d.body.name         ?? '',
-        description : d.body.description  ?? '',
-        physicalLoad: d.body.physicalLoad ?? -1,
-        mentalLoad  : d.body.mentalLoad   ?? -1,
-        riskLevel   : d.body.riskLevel    ?? -1,
-        minimumStaff: d.body.minimumStaff ?? -1,
-        targetStaff : d.body.targetStaff  ?? -1,
-        maximumStaff: d.body.maximumStaff ?? -1,
-        minimumSumProficiency: d.body.minimumSumProficiency ?? null,
-        targetSumProficiency : d.body.targetSumProficiency  ?? null,
-        maximumSumProficiency: d.body.maximumSumProficiency ?? null,
-        isPrioritisingStaffAmount: d.body.isPrioritisingStaffAmount ?? false,
+        unitID      : readString(body, "unitID") ?? '',
+        unitName    : readString(body, "unitName") ?? '',
+        name        : readString(body, "name") ?? '',
+        description : readString(body, "description") ?? '',
+        physicalLoad: readInteger(body, "physicalLoad") ?? -1,
+        mentalLoad  : readInteger(body, "mentalLoad") ?? -1,
+        riskLevel   : readInteger(body, "riskLevel") ?? -1,
+        minimumStaff: readInteger(body, "minimumStaff") ?? -1,
+        targetStaff : readInteger(body, "targetStaff") ?? -1,
+        maximumStaff: readInteger(body, "maximumStaff") ?? -1,
+        minimumSumProficiency: readNullableInteger(body, "minimumSumProficiency") ?? null,
+        targetSumProficiency : readNullableInteger(body, "targetSumProficiency") ?? null,
+        maximumSumProficiency: readNullableInteger(body, "maximumSumProficiency") ?? null,
+        isPrioritisingStaffAmount: readBoolean(body, "isPrioritisingStaffAmount") ?? false,
     }
 
-    const validatePositionResult: boolean = validatePosition(newPosition);
-
-    if (!validatePositionResult) {
+    if (!validatePosition(newPosition)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed position info.").unwrap(d.set);
     }
 
@@ -153,7 +164,9 @@ export async function handleCreatePosition(d: ServiceDependencies): Promise<RFSe
 }
 
 export async function handleUpdatePositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionID: string = d.params.positionID ?? '';
+    const params    : Record<string, unknown> = toRecord(d.params);
+    const body      : Record<string, unknown> = toRecord(d.body);
+    const positionID: string                  = readString(params, "positionID") ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing position ID.").unwrap(d.set);
@@ -172,27 +185,25 @@ export async function handleUpdatePositionByPositionID(d: ServiceDependencies): 
         return new Response(false, HTTPStatus.NOT_FOUND, "Position not found.").unwrap(d.set);
     }
 
-    const newPosition: Position = {
+    const newPosition: unknown = {
         id          : Number.parseInt(positionID),
-        unitName    : d.body.unitName     ?? oldPosition.unitName,
-        unitID      : d.body.unitID       ?? oldPosition.unitID,
-        name        : d.body.name         ?? oldPosition.name,
-        description : d.body.description  ?? oldPosition.description,
-        physicalLoad: d.body.physicalLoad ?? oldPosition.physicalLoad,
-        mentalLoad  : d.body.mentalLoad   ?? oldPosition.mentalLoad,
-        riskLevel   : d.body.riskLevel    ?? oldPosition.riskLevel,
-        minimumStaff: d.body.minimumStaff ?? oldPosition.minimumStaff,
-        targetStaff : d.body.targetStaff  ?? oldPosition.targetStaff,
-        maximumStaff: d.body.maximumStaff ?? oldPosition.maximumStaff,
-        minimumSumProficiency: d.body.minimumSumProficiency ?? oldPosition.minimumSumProficiency,
-        targetSumProficiency : d.body.targetSumProficiency  ?? oldPosition.targetSumProficiency,
-        maximumSumProficiency: d.body.maximumSumProficiency ?? oldPosition.maximumSumProficiency,
-        isPrioritisingStaffAmount: d.body.isPrioritisingStaffAmount ?? oldPosition.isPrioritisingStaffAmount,
+        unitName    : readString(body, "unitName") ?? oldPosition.unitName,
+        unitID      : readString(body, "unitID") ?? oldPosition.unitID,
+        name        : readString(body, "name") ?? oldPosition.name,
+        description : readString(body, "description") ?? oldPosition.description,
+        physicalLoad: readInteger(body, "physicalLoad") ?? oldPosition.physicalLoad,
+        mentalLoad  : readInteger(body, "mentalLoad") ?? oldPosition.mentalLoad,
+        riskLevel   : readInteger(body, "riskLevel") ?? oldPosition.riskLevel,
+        minimumStaff: readInteger(body, "minimumStaff") ?? oldPosition.minimumStaff,
+        targetStaff : readInteger(body, "targetStaff") ?? oldPosition.targetStaff,
+        maximumStaff: readInteger(body, "maximumStaff") ?? oldPosition.maximumStaff,
+        minimumSumProficiency: readNullableInteger(body, "minimumSumProficiency") ?? oldPosition.minimumSumProficiency,
+        targetSumProficiency : readNullableInteger(body, "targetSumProficiency") ?? oldPosition.targetSumProficiency,
+        maximumSumProficiency: readNullableInteger(body, "maximumSumProficiency") ?? oldPosition.maximumSumProficiency,
+        isPrioritisingStaffAmount: readBoolean(body, "isPrioritisingStaffAmount") ?? oldPosition.isPrioritisingStaffAmount,
     }
 
-    const validateNewPositionResult: boolean = validatePosition(newPosition);
-
-    if (!validateNewPositionResult) {
+    if (!validatePosition(newPosition)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed position info.").unwrap(d.set);
     }
 
@@ -223,7 +234,8 @@ export async function handleDeleteAllPositions(d: ServiceDependencies): Promise<
 }
 
 export async function handleDeletePositionByPositionID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const positionID: string = d.params.positionID ?? '';
+    const params    : Record<string, unknown> = toRecord(d.params);
+    const positionID: string                  = readString(params, "positionID") ?? '';
 
     if (Number.isNaN(Number.parseInt(positionID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing position ID.").unwrap(d.set);

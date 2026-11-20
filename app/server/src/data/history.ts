@@ -2,20 +2,12 @@ import type { SQL } from "bun";
 
 import { Result } from "@lib:templates/result";
 
-export type HistoricalLoadRow = {
-    staffID     : string,
-    date        : string,
-    physicalLoad: number,
-    mentalLoad  : number,
-    riskLevel   : number,
-    hours       : number
-};
-
-export type HistoricalPositionRow = {
-    staffID   : string,
-    dateTime  : string,
-    positionID: number
-};
+import {
+    type HistoricalLoadRow,
+    type HistoricalPositionRow,
+    validateHistoricalLoadRow,
+    validateHistoricalPositionRow
+} from "@model:relations";
 
 export async function getHistoricalLoadRows(
     sql: SQL,
@@ -36,7 +28,7 @@ export async function getHistoricalLoadRows(
                     + EXTRACT(MINUTE FROM s.to_time) / 60.0
                     - EXTRACT(HOUR FROM s.from_time)
                     - EXTRACT(MINUTE FROM s.from_time) / 60.0
-                ) AS "hours"
+                )::double precision AS "hours"
 
         FROM    roster_records      AS r
 
@@ -59,6 +51,10 @@ export async function getHistoricalLoadRows(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateHistoricalLoadRow)) {
         return new Result<R>(false, null);
     }
 
@@ -92,6 +88,10 @@ export async function getHistoricalPositionRows(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateHistoricalPositionRow)) {
         return new Result<R>(false, null);
     }
 

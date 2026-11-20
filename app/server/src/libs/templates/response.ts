@@ -1,9 +1,7 @@
-import type { Context } from "elysia";
-
 import type { HTTPStatus } from "@lib:enums/http_status";
 import type { Nullable }   from "@lib:types/nullable";
 
-export type ResponseData     = Nullable<Record<string, any> | string | number | boolean>;
+export type ResponseData     = Nullable<unknown>;
 export type RFServerResponse = {
     success: boolean,
     status : HTTPStatus,
@@ -25,8 +23,10 @@ export class Response {
         this.data    = data;
     }
 
-    public unwrap(set: Context["set"]): RFServerResponse {
-        set.status = this.status as number;
+    public unwrap(set: unknown): RFServerResponse {
+        if (typeof set === "object" && set !== null) {
+            Reflect.set(set, "status", Number(this.status));
+        }
 
         return {
             success: this.success,

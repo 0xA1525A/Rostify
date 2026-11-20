@@ -1,7 +1,7 @@
 import type { Fn }     from "@lib:types/fn";
 import type { Option } from "@lib:types/option";
 
-export function normaliseOption<T>(optionValue: unknown, parserFunction: Fn<[any], T>): Option<T> {
+export function normaliseOption<T>(optionValue: unknown, parserFunction: Fn<[string], T>): Option<T> {
     if (
         optionValue === undefined
     ||  (typeof optionValue === "string" && optionValue.trim() === "")
@@ -10,7 +10,7 @@ export function normaliseOption<T>(optionValue: unknown, parserFunction: Fn<[any
     }
 
     try {
-        return parserFunction(optionValue);
+        return parserFunction(String(optionValue));
     }
     catch {
         return undefined;

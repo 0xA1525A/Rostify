@@ -3,6 +3,7 @@ import type { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { PositionConflict } from "@model:position_conflicts";
+import      { validatePositionConflict } from "@model:position_conflicts";
 
 type Conflicts = Array<PositionConflict>;
 
@@ -21,6 +22,10 @@ export async function getAllPositionConflicts(sql: SQL): Promise<Result<Conflict
     `;
 
     if (result.length === 0) {
+        return new Result<Conflicts>(false, null);
+    }
+
+    if (!result.every(validatePositionConflict)) {
         return new Result<Conflicts>(false, null);
     }
 
@@ -48,7 +53,13 @@ export async function getPositionConflictByIDs(
         return new Result<PositionConflict>(false, null);
     }
 
-    return new Result<PositionConflict>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validatePositionConflict(first)) {
+        return new Result<PositionConflict>(false, null);
+    }
+
+    return new Result<PositionConflict>(true, first);
 }
 
 export async function getConflictsFromPosition(sql: SQL, positionAID: number): Promise<Result<Conflicts>> {
@@ -66,6 +77,10 @@ export async function getConflictsFromPosition(sql: SQL, positionAID: number): P
     `;
 
     if (result.length === 0) {
+        return new Result<Conflicts>(false, null);
+    }
+
+    if (!result.every(validatePositionConflict)) {
         return new Result<Conflicts>(false, null);
     }
 
@@ -90,11 +105,17 @@ export async function getConflictsToPosition(sql: SQL, positionBID: number): Pro
         return new Result<Conflicts>(false, null);
     }
 
+    if (!result.every(validatePositionConflict)) {
+        return new Result<Conflicts>(false, null);
+    }
+
     return new Result<Conflicts>(true, result);
 }
 
 export async function createPositionConflict(sql: SQL, conflict: PositionConflict): Promise<Result<null>> {
-    const result = await sql`
+    type R = Array<{ position_a_id: number }>;
+
+    const result: R = await sql`
         INSERT INTO position_conflicts
         (
                 position_a_id,
@@ -145,11 +166,19 @@ export async function updatePositionConflict(sql: SQL, conflict: PositionConflic
         return new Result<PositionConflict>(false, null);
     }
 
-    return new Result<PositionConflict>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validatePositionConflict(first)) {
+        return new Result<PositionConflict>(false, null);
+    }
+
+    return new Result<PositionConflict>(true, first);
 }
 
 export async function deleteAllPositionConflicts(sql: SQL): Promise<Result<null>> {
-    const result = await sql`
+    type R = Array<{ position_a_id: number }>;
+
+    const result: R = await sql`
         DELETE FROM position_conflicts
 
         RETURNING position_a_id
@@ -163,7 +192,9 @@ export async function deletePositionConflictByIDs(
     positionAID: number,
     positionBID: number
 ): Promise<Result<null>> {
-    const result = await sql`
+    type R = Array<{ position_a_id: number }>;
+
+    const result: R = await sql`
         DELETE FROM position_conflicts
 
         WHERE   position_a_id = ${ positionAID }

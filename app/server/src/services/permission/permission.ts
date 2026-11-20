@@ -26,7 +26,7 @@ const PERMISSION_MAP: Record<InAppPermission, number> = {
 
 export async function getAccessPrincipal(
     sql             : SQL,
-    headers         : any,
+    headers         : unknown,
     minimumPrivilege: InAppPermission,
     allowSelf       : boolean,
     staffID         : Nullable<string> = null
@@ -76,7 +76,7 @@ export async function getAccessPrincipal(
 
 export async function validateAccessPermission(
     sql             : SQL,
-    headers         : any,
+    headers         : unknown,
     minimumPrivilege: InAppPermission,
     allowSelf       : boolean,
     staffID         : Nullable<string> = null

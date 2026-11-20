@@ -3,6 +3,9 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { StaffPreview, Staff, StaffTel, StaffEmail } from "@model:staff";
+import      { validateStaff, validateStaffPreview, validateStaffEmail, validateStaffTel } from "@model:staff";
+import type { StaffWorkInfo, StaffName } from "@model:relations";
+import      { validateStaffWorkInfo, validateStaffName } from "@model:relations";
 
 export async function getAllStaffPreviews(
     sql: SQL
@@ -23,13 +26,17 @@ export async function getAllStaffPreviews(
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffPreview)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
 export async function getAllStaffWorkInfo(
     sql: SQL
-): Promise<Result<Array<{ id: string, isFullTime: boolean }>>> {
-    type R = Array<{ id: string, isFullTime: boolean }>;
+): Promise<Result<Array<StaffWorkInfo>>> {
+    type R = Array<StaffWorkInfo>;
 
     const result: R = await sql`
         SELECT  id,
@@ -39,6 +46,10 @@ export async function getAllStaffWorkInfo(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffWorkInfo)) {
         return new Result<R>(false, null);
     }
 
@@ -70,7 +81,13 @@ export async function getStaffByStaffID(
         return new Result<Staff>(false, null);
     }
 
-    return new Result<Staff>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateStaff(first)) {
+        return new Result<Staff>(false, null);
+    }
+
+    return new Result<Staff>(true, first);
 }
 
 export async function getStaffPreviewsByAnyName(
@@ -101,6 +118,10 @@ export async function getStaffPreviewsByAnyName(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffPreview)) {
         return new Result<R>(false, null);
     }
 
@@ -178,18 +199,20 @@ export async function updateStaffByStaffID(
         return new Result<Staff>(false, null);
     }
 
-    return new Result<Staff>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateStaff(first)) {
+        return new Result<Staff>(false, null);
+    }
+
+    return new Result<Staff>(true, first);
 }
 
 export async function deleteStaffByStaffID(
     sql: SQL,
     staffID: string
-): Promise<Result<{ firstName: string, lastName: string }>> {
-    type E = {
-        firstName: string,
-        lastName : string
-    };
-    type R = Array<E>;
+): Promise<Result<StaffName>> {
+    type R = Array<StaffName>;
 
     const result: R = await sql`
         DELETE FROM
@@ -203,10 +226,16 @@ export async function deleteStaffByStaffID(
     `;
 
     if (result.length === 0) {
-        return new Result<E>(false, null);
+        return new Result<StaffName>(false, null);
     }
 
-    return new Result<E>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateStaffName(first)) {
+        return new Result<StaffName>(false, null);
+    }
+
+    return new Result<StaffName>(true, first);
 }
 
 export async function deleteAllStaff(
@@ -243,6 +272,10 @@ export async function getAllEmails(sql: SQL): Promise<Result<Array<StaffEmail>>>
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffEmail)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -263,6 +296,10 @@ export async function getEmailsByStaffID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffEmail)) {
         return new Result<R>(false, null);
     }
 
@@ -317,6 +354,10 @@ export async function getAllTels(sql: SQL): Promise<Result<Array<StaffTel>>> {
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffTel)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -337,6 +378,10 @@ export async function getTelsByStaffID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffTel)) {
         return new Result<R>(false, null);
     }
 

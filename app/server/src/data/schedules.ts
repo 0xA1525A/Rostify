@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { SchedulePosition, ScheduleTask } from "@model:schedules";
+import      { validateSchedulePosition, validateScheduleTask } from "@model:schedules";
 
 export async function getAllSchedulePositions(sql: SQL): Promise<Result<Array<SchedulePosition>>> {
     type R = Array<SchedulePosition>;
@@ -20,6 +21,10 @@ export async function getAllSchedulePositions(sql: SQL): Promise<Result<Array<Sc
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateSchedulePosition)) {
         return new Result<R>(false, null);
     }
 
@@ -49,6 +54,10 @@ export async function getSchedulePositionsByRosterRecordID(
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateSchedulePosition)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -56,7 +65,7 @@ export async function getSchedulePositionsByDate(sql: SQL, date: string): Promis
     type R = Array<SchedulePosition>;
 
     const result: R = await sql`
-        SELECT  s.roster_record_id AS "rosterRecordID",
+        SELECT  s.roster_record_id::int AS "rosterRecordID",
                 to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.position_id      AS "positionID"
 
@@ -76,6 +85,10 @@ export async function getSchedulePositionsByDate(sql: SQL, date: string): Promis
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateSchedulePosition)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -87,7 +100,7 @@ export async function getSchedulePositionsByDateAndStaffID(
     type R = Array<SchedulePosition>;
 
     const result: R = await sql`
-        SELECT  s.roster_record_id AS "rosterRecordID",
+        SELECT  s.roster_record_id::int AS "rosterRecordID",
                 to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.position_id      AS "positionID"
 
@@ -104,6 +117,10 @@ export async function getSchedulePositionsByDateAndStaffID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateSchedulePosition)) {
         return new Result<R>(false, null);
     }
 
@@ -126,6 +143,10 @@ export async function getAllScheduleTasks(sql: SQL): Promise<Result<Array<Schedu
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateScheduleTask)) {
         return new Result<R>(false, null);
     }
 
@@ -155,6 +176,10 @@ export async function getScheduleTasksByRosterRecordID(
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateScheduleTask)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -162,7 +187,7 @@ export async function getScheduleTasksByDate(sql: SQL, date: string): Promise<Re
     type R = Array<ScheduleTask>;
 
     const result: R = await sql`
-        SELECT  s.roster_record_id AS "rosterRecordID",
+        SELECT  s.roster_record_id::int AS "rosterRecordID",
                 to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.task_id          AS "taskID"
 
@@ -182,6 +207,10 @@ export async function getScheduleTasksByDate(sql: SQL, date: string): Promise<Re
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateScheduleTask)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -193,7 +222,7 @@ export async function getScheduleTasksByDateAndStaffID(
     type R = Array<ScheduleTask>;
 
     const result: R = await sql`
-        SELECT  s.roster_record_id AS "rosterRecordID",
+        SELECT  s.roster_record_id::int AS "rosterRecordID",
                 to_char(s.date_time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "dateTime",
                 s.task_id          AS "taskID"
 
@@ -210,6 +239,10 @@ export async function getScheduleTasksByDateAndStaffID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateScheduleTask)) {
         return new Result<R>(false, null);
     }
 

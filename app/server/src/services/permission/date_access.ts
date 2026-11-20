@@ -22,11 +22,6 @@ export function addDaysUTC(date: string, days: number): string {
     return value.toISOString().slice(0, 10);
 }
 
-/**
- * Past rosters/schedules are immutable: nobody may generate or move them,
- * and only administrators may delete them. Current and future dates may be
- * generated, moved, and deleted by managers (and administrators).
- */
 export function checkDateAccess(
     privilege: StaffPrivilege,
     date     : string,

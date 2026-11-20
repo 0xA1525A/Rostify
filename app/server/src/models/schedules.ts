@@ -1,31 +1,35 @@
-import { Type, Static } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { Type } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
 
-import { type RosterRecord } from "@model:rosters";
+import { compileSchema, DateTimeSchema, PositiveIntegerSchema } from "@model:common";
+import { RosterRecordSchema } from "@model:rosters";
 
 export const SchedulePositionSchema = Type.Object({
-    rosterRecordID: Type.Integer(),
-    dateTime      : Type.String({ format: "date-time" }),
-    positionID    : Type.Union([Type.Integer(), Type.Null()]) // null represents a break
+    rosterRecordID: PositiveIntegerSchema,
+    dateTime      : DateTimeSchema,
+    positionID    : Type.Union([PositiveIntegerSchema, Type.Null()])
 });
 
 export const ScheduleTaskSchema = Type.Object({
-    rosterRecordID: Type.Integer(),
-    dateTime      : Type.String({ format: "date-time" }),
-    taskID        : Type.Integer()
+    rosterRecordID: PositiveIntegerSchema,
+    dateTime      : DateTimeSchema,
+    taskID        : PositiveIntegerSchema
+});
+
+export const ScheduleSchema = Type.Object({
+    record    : RosterRecordSchema,
+    positions : Type.Array(SchedulePositionSchema),
+    tasks     : Type.Array(ScheduleTaskSchema)
 });
 
 export type SchedulePosition = Static<typeof SchedulePositionSchema>;
 export type ScheduleTask     = Static<typeof ScheduleTaskSchema>;
+export type Schedule         = Static<typeof ScheduleSchema>;
 
-export type Schedule = {
-    record  : RosterRecord,
-    positions: Array<SchedulePosition>,
-    tasks   : Array<ScheduleTask>
-};
+const checkSchedulePosition = compileSchema(SchedulePositionSchema);
+const checkScheduleTask     = compileSchema(ScheduleTaskSchema);
+const checkSchedule         = compileSchema(ScheduleSchema);
 
-const checkSchedulePosition = TypeCompiler.Compile(SchedulePositionSchema);
-const checkScheduleTask     = TypeCompiler.Compile(ScheduleTaskSchema);
-
-export const validateSchedulePosition: (v: unknown) => v is SchedulePosition = (v: unknown): v is SchedulePosition => checkSchedulePosition.Check(v);
-export const validateScheduleTask    : (v: unknown) => v is ScheduleTask     = (v: unknown): v is ScheduleTask     => checkScheduleTask.Check(v);
+export const validateSchedulePosition = (value: unknown): value is SchedulePosition => checkSchedulePosition.Check(value);
+export const validateScheduleTask     = (value: unknown): value is ScheduleTask     => checkScheduleTask.Check(value);
+export const validateSchedule         = (value: unknown): value is Schedule         => checkSchedule.Check(value);

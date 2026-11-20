@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { Unit } from "@model:units";
+import      { validateUnit } from "@model:units";
 
 export async function getAllUnits(sql: SQL): Promise<Result<Array<Unit>>> {
     type R = Array<Unit>;
@@ -17,6 +18,10 @@ export async function getAllUnits(sql: SQL): Promise<Result<Array<Unit>>> {
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateUnit)) {
         return new Result<R>(false, null);
     }
 
@@ -41,7 +46,13 @@ export async function getUnitByID(sql: SQL, unitID: number): Promise<Result<Unit
         return new Result<Unit>(false, null);
     }
 
-    return new Result<Unit>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateUnit(first)) {
+        return new Result<Unit>(false, null);
+    }
+
+    return new Result<Unit>(true, first);
 }
 
 export async function searchUnitsByUnitName(sql: SQL, unitName: string): Promise<Result<Array<Unit>>> {
@@ -63,6 +74,10 @@ export async function searchUnitsByUnitName(sql: SQL, unitName: string): Promise
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateUnit)) {
         return new Result<R>(false, null);
     }
 
@@ -120,7 +135,13 @@ export async function updateUnitByUnitID(sql: SQL, unitID: number, newUnit: Omit
         return new Result<Unit>(false, null);
     }
 
-    return new Result<Unit>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateUnit(first)) {
+        return new Result<Unit>(false, null);
+    }
+
+    return new Result<Unit>(true, first);
 }
 
 export async function deleteAllUnits(sql: SQL): Promise<Result<null>> {

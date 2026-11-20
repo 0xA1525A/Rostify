@@ -5,6 +5,11 @@ import type { ServiceDependencies }             from "@lib:templates/service_dep
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
 import {
+    readString,
+    toRecord
+} from "@lib:templates/request_values";
+
+import {
     createUnit,
     deleteAllUnits,
     deleteUnitByUnitID,
@@ -42,7 +47,8 @@ export async function handleGetUnitByUnitID(d: ServiceDependencies): Promise<RFS
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const unitID: string = d.params.unitID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const unitID: string                  = readString(params, "unitID") ?? '';
 
     if (Number.isNaN(Number.parseInt(unitID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing unit ID.").unwrap(d.set);
@@ -60,7 +66,8 @@ export async function handleGetUnitByUnitID(d: ServiceDependencies): Promise<RFS
 
 export async function handleSearchUnitsByName(d: ServiceDependencies): Promise<RFServerResponse>
 {
-     const unitName: string = d.params.unitName ?? '';
+     const params  : Record<string, unknown> = toRecord(d.params);
+     const unitName: string                  = readString(params, "unitName") ?? '';
 
     if (!unitName.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing unit name.").unwrap(d.set);
@@ -85,22 +92,22 @@ export async function handleSearchUnitsByName(d: ServiceDependencies): Promise<R
 }
 
 export async function handleCreateUnit(d: ServiceDependencies): Promise<RFServerResponse> {
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const unitInfo: Unit = {
-        id         : 0, // placeholder.
-        name       : d.body.name        ?? '',
-        description: d.body.description ?? '',
-        workingArea: d.body.workingArea ?? ''
+    const unitInfo: unknown = {
+        id         : 0,
+        name       : readString(body, "name") ?? '',
+        description: readString(body, "description") ?? '',
+        workingArea: readString(body, "workingArea") ?? ''
     }
 
-    const validateUnitInfo: boolean = validateUnit(unitInfo);
-
-    if (!validateUnitInfo) {
+    if (!validateUnit(unitInfo)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed unit info.").unwrap(d.set);
     }
 
@@ -121,7 +128,9 @@ export async function handleUpdateUnitByUnitID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetUnitID: string = d.params.unitID ?? '';
+    const params      : Record<string, unknown> = toRecord(d.params);
+    const body        : Record<string, unknown> = toRecord(d.body);
+    const targetUnitID: string                  = readString(params, "unitID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetUnitID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Unit ID.").unwrap(d.set);
@@ -134,16 +143,14 @@ export async function handleUpdateUnitByUnitID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.NOT_FOUND, "Unit not found.").unwrap(d.set);
     }
 
-    const newUnit: Unit = {
+    const newUnit: unknown = {
         id          : Number.parseInt(targetUnitID),
-        name        : d.body.name        ?? oldUnit.name,
-        description : d.body.description ?? oldUnit.description,
-        workingArea : d.body.workingArea ?? oldUnit.workingArea
+        name        : readString(body, "name") ?? oldUnit.name,
+        description : readString(body, "description") ?? oldUnit.description,
+        workingArea : readString(body, "workingArea") ?? oldUnit.workingArea
     }
 
-    const validateUnitInfo: boolean = validateUnit(newUnit);
-
-    if (!validateUnitInfo) {
+    if (!validateUnit(newUnit)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed unit info.").unwrap(d.set);
     }
 
@@ -180,7 +187,8 @@ export async function handleDeleteUnitByUnitID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetUnitID: string = d.params.unitID ?? '';
+    const params      : Record<string, unknown> = toRecord(d.params);
+    const targetUnitID: string                  = readString(params, "unitID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetUnitID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Unit ID.").unwrap(d.set);

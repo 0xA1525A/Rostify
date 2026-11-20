@@ -107,5 +107,13 @@
     "no-fallthrough": "error",
     "no-debugger": "error"
   },
+  "overrides": [
+    {
+      "files": ["src/libs/templates/service_deps.ts"],
+      "rules": {
+        "typescript/no-explicit-any": "off"
+      }
+    }
+  ],
   "ignorePatterns": ["dist", "build", "node_modules", "*.gen.ts"]
 }

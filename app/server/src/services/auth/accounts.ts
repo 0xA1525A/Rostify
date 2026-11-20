@@ -3,6 +3,7 @@ import type { Nullable }                   from "@lib:types/nullable";
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 import type { Result }                     from "@lib:templates/result";
 import type { ServiceDependencies }        from "@lib:templates/service_deps";
+import      { readString, toRecord }       from "@lib:templates/request_values";
 
 import { validateAccessPermission } from "@service:permission/permission";
 import {
@@ -38,7 +39,9 @@ export async function handleDeleteAllLoginAccounts(d: ServiceDependencies): Prom
 
 export async function handleDeleteLoginAccountByStaffID(d: ServiceDependencies): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === '') {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID. Whom are we supposed to be searching for?").unwrap(d.set);
@@ -77,7 +80,9 @@ export async function handleGetAllLoginAccounts(d: ServiceDependencies): Promise
 }
 
 export async function handleGetLoginAccountByStaffID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === '') {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -100,12 +105,15 @@ export async function handleGetLoginAccountByStaffID(d: ServiceDependencies): Pr
 }
 
 export async function handleUpdateLoginAccountByStaffID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const staffID                : string = d.params.staffID   ?? '';
-    const newUsername            : string = d.body.username    ?? '';
-    const newPassword            : string = d.body.newPassword ?? '';
-    const newPasswordConfirmation: string = d.body.newPasswordConfirmation ?? '';
-    const oldPassword            : string = d.body.oldPassword ?? '';
-    const newStatus              : string = d.body.newStatus   ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const staffID                : string = readString(params, "staffID")                 ?? '';
+    const newUsername            : string = readString(body, "username")                  ?? '';
+    const newPassword            : string = readString(body, "newPassword")               ?? '';
+    const newPasswordConfirmation: string = readString(body, "newPasswordConfirmation")   ?? '';
+    const oldPassword            : string = readString(body, "oldPassword")               ?? '';
+    const newStatus              : string = readString(body, "newStatus")                 ?? '';
 
     const validationResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", true, staffID);
 
@@ -202,10 +210,12 @@ export async function handleUpdateLoginAccountByStaffID(d: ServiceDependencies):
 }
 
 export async function handlePasswordReset(d: ServiceDependencies): Promise<RFServerResponse> {
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const token: Nullable<string> = getClientSessionToken(d.headers);
-    const newPassword: string = d.body.newPassword ?? '';
-    const newPasswordConfirmation: string = d.body.newPasswordConfirmation ?? '';
-    const oldPassword: string = d.body.oldPassword ?? '';
+    const newPassword: string = readString(body, "newPassword") ?? '';
+    const newPasswordConfirmation: string = readString(body, "newPasswordConfirmation") ?? '';
+    const oldPassword: string = readString(body, "oldPassword") ?? '';
 
     if (!token) {
         return new Response(false, HTTPStatus.UNAUTHORISED, "Missing token. Who are you?").unwrap(d.set);

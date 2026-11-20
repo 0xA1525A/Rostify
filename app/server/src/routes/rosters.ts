@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import {
     handleDeleteRosterByDate,
     handleDeleteStaffRosterByDate,
@@ -11,17 +11,14 @@ import {
     handleMoveStaffRoster
 } from "@service:business/rosters";
 
-type F = Fn<[unknown], unknown>;
-
 export const rosterRoutes = new Elysia({ prefix: "/rosters" })
-    // Static generation route first so it cannot be captured by `/:date`.
-    .post("/generate/:date", handleGenerateRoster as F)
+    .post("/generate/:date", toRouteHandler(handleGenerateRoster))
 
-    .get("/", handleGetAllRosters as F)
-    .get("/:date", handleGetAllRostersOnDate as F)
-    .get("/:date/:staffID", handleGetStaffRosterOnDateByID as F)
+    .get("/", toRouteHandler(handleGetAllRosters))
+    .get("/:date", toRouteHandler(handleGetAllRostersOnDate))
+    .get("/:date/:staffID", toRouteHandler(handleGetStaffRosterOnDateByID))
 
-    .patch("/:date/:staffID", handleMoveStaffRoster as F)
+    .patch("/:date/:staffID", toRouteHandler(handleMoveStaffRoster))
 
-    .delete("/:date", handleDeleteRosterByDate as F)
-    .delete("/:date/:staffID", handleDeleteStaffRosterByDate as F);
+    .delete("/:date", toRouteHandler(handleDeleteRosterByDate))
+    .delete("/:date/:staffID", toRouteHandler(handleDeleteStaffRosterByDate));

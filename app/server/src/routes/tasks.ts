@@ -1,17 +1,15 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import { handleCreateTask, handleDeleteAllTasks, handleDeleteTaskByTaskID, handleGetAllTasks, handleGetTaskByTaskID, handleUpdateTaskByTaskID } from "@service:business/tasks";
 
-type F = Fn<[unknown], unknown>;
-
 export const taskRoutes = new Elysia({ prefix: "/tasks" })
-    .get("/", handleGetAllTasks as F)
-    .get("/:taskID", handleGetTaskByTaskID as F)
+    .get("/", toRouteHandler(handleGetAllTasks))
+    .get("/:taskID", toRouteHandler(handleGetTaskByTaskID))
 
-    .post("/", handleCreateTask as F)
+    .post("/", toRouteHandler(handleCreateTask))
 
-    .patch("/:taskID", handleUpdateTaskByTaskID as F)
+    .patch("/:taskID", toRouteHandler(handleUpdateTaskByTaskID))
 
-    .delete("/", handleDeleteAllTasks as F)
-    .delete("/:taskID", handleDeleteTaskByTaskID as F);
+    .delete("/", toRouteHandler(handleDeleteAllTasks))
+    .delete("/:taskID", toRouteHandler(handleDeleteTaskByTaskID));

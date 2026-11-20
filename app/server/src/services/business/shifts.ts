@@ -5,6 +5,12 @@ import type { ServiceDependencies }             from "@lib:templates/service_dep
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
 import {
+    readBoolean,
+    readString,
+    toRecord
+} from "@lib:templates/request_values";
+
+import {
     createShift,
     deleteAllShifts,
     deleteShiftByShiftID,
@@ -43,7 +49,8 @@ export async function handleGetShiftByID(d: ServiceDependencies): Promise<RFServ
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const shiftID: string = d.params.shiftID ?? '';
+    const params : Record<string, unknown> = toRecord(d.params);
+    const shiftID: string                  = readString(params, "shiftID") ?? '';
 
     if (Number.isNaN(Number.parseInt(shiftID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing shift ID.").unwrap(d.set);
@@ -60,7 +67,8 @@ export async function handleGetShiftByID(d: ServiceDependencies): Promise<RFServ
 }
 
 export async function handleSearchShiftsByName(d: ServiceDependencies): Promise<RFServerResponse> {
-     const shiftName: string = d.params.shiftName ?? '';
+     const params   : Record<string, unknown> = toRecord(d.params);
+     const shiftName: string                  = readString(params, "shiftName") ?? '';
 
     if (!shiftName.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing shift name.").unwrap(d.set);
@@ -85,26 +93,26 @@ export async function handleSearchShiftsByName(d: ServiceDependencies): Promise<
 }
 
 export async function handleCreateShift(d: ServiceDependencies): Promise<RFServerResponse> {
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const shiftInfo: Shift = {
-        id         : 0, // placeholder.
-        day        : d.body.day         ?? '',
-        isHoliday  : d.body.isHoliday   ?? '',
-        name       : d.body.name        ?? '',
-        description: d.body.description ?? '',
-        fromTime   : d.body.fromTime    ?? '',
-        toTime     : d.body.toTime      ?? '',
-        isOvernight: d.body.isOvernight ?? false
+    const shiftInfo: unknown = {
+        id         : 0,
+        day        : readString(body, "day") ?? '',
+        isHoliday  : readBoolean(body, "isHoliday") ?? '',
+        name       : readString(body, "name") ?? '',
+        description: readString(body, "description") ?? '',
+        fromTime   : readString(body, "fromTime") ?? '',
+        toTime     : readString(body, "toTime") ?? '',
+        isOvernight: readBoolean(body, "isOvernight") ?? false
     }
 
-    const validateShiftInfo: boolean = validateShift(shiftInfo);
-
-    if (!validateShiftInfo) {
+    if (!validateShift(shiftInfo)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed shift info.").unwrap(d.set);
     }
 
@@ -125,7 +133,9 @@ export async function handleUpdateShiftByShiftID(d: ServiceDependencies): Promis
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetShiftID: string = d.params.shiftID ?? '';
+    const params       : Record<string, unknown> = toRecord(d.params);
+    const body         : Record<string, unknown> = toRecord(d.body);
+    const targetShiftID: string                  = readString(params, "shiftID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetShiftID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Shift ID.").unwrap(d.set);
@@ -138,20 +148,18 @@ export async function handleUpdateShiftByShiftID(d: ServiceDependencies): Promis
         return new Response(false, HTTPStatus.NOT_FOUND, "Shift not found.").unwrap(d.set);
     }
 
-    const newShift: Shift = {
-        id         : 0, // placeholder.
-        day        : d.body.day         ?? oldShift.day,
-        isHoliday  : d.body.isHoliday   ?? oldShift.isHoliday,
-        name       : d.body.name        ?? oldShift.name,
-        description: d.body.description ?? oldShift.description,
-        fromTime   : d.body.fromTime    ?? oldShift.fromTime,
-        toTime     : d.body.toTime      ?? oldShift.toTime,
-        isOvernight: d.body.isOvernight ?? oldShift.isOvernight
+    const newShift: unknown = {
+        id         : 0,
+        day        : readString(body, "day") ?? oldShift.day,
+        isHoliday  : readBoolean(body, "isHoliday") ?? oldShift.isHoliday,
+        name       : readString(body, "name") ?? oldShift.name,
+        description: readString(body, "description") ?? oldShift.description,
+        fromTime   : readString(body, "fromTime") ?? oldShift.fromTime,
+        toTime     : readString(body, "toTime") ?? oldShift.toTime,
+        isOvernight: readBoolean(body, "isOvernight") ?? oldShift.isOvernight
     }
 
-    const validateShiftInfo: boolean = validateShift(newShift);
-
-    if (!validateShiftInfo) {
+    if (!validateShift(newShift)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed shift info.").unwrap(d.set);
     }
 
@@ -188,7 +196,8 @@ export async function handleDeleteShiftByShiftID(d: ServiceDependencies): Promis
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetShiftID: string = d.params.shiftID ?? '';
+    const params       : Record<string, unknown> = toRecord(d.params);
+    const targetShiftID: string                  = readString(params, "shiftID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetShiftID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Shift ID.").unwrap(d.set);

@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import {
     handleDeleteAllSchedulesOnDate,
     handleDeleteStaffScheduleOnDateByID,
@@ -11,15 +11,13 @@ import {
     handleUpdateStaffScheduleOnDateByID
 } from "@service:business/schedules";
 
-type F = Fn<[unknown], unknown>;
-
 export const scheduleRoutes = new Elysia({ prefix: "/schedules" })
-    .get("/", handleGetAllSchedulePreviews as F)
-    .get("/date/:date", handleGetAllSchedulesOnDate as F)
-    .get("/date/:date/:staffID", handleGetStaffScheduleOnDateByID as F)
-    .get("/staff/:staffID", handleGetAllStaffSchedules as F)
+    .get("/", toRouteHandler(handleGetAllSchedulePreviews))
+    .get("/date/:date", toRouteHandler(handleGetAllSchedulesOnDate))
+    .get("/date/:date/:staffID", toRouteHandler(handleGetStaffScheduleOnDateByID))
+    .get("/staff/:staffID", toRouteHandler(handleGetAllStaffSchedules))
 
-    .patch("/date/:date/:staffID", handleUpdateStaffScheduleOnDateByID as F)
+    .patch("/date/:date/:staffID", toRouteHandler(handleUpdateStaffScheduleOnDateByID))
 
-    .delete("/date/:date", handleDeleteAllSchedulesOnDate as F)
-    .delete("/date/:date/:staffID", handleDeleteStaffScheduleOnDateByID as F);
+    .delete("/date/:date", toRouteHandler(handleDeleteAllSchedulesOnDate))
+    .delete("/date/:date/:staffID", toRouteHandler(handleDeleteStaffScheduleOnDateByID));

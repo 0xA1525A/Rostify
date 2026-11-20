@@ -1,17 +1,15 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import { handleCreatePosition, handleDeleteAllPositions, handleDeletePositionByPositionID, handleGetAllPositionPreviews, handleGetPositionByPositionID, handleUpdatePositionByPositionID } from "@service:business/positions";
 
-type F = Fn<[unknown], unknown>;
-
 export const positionRoutes = new Elysia({ prefix: "/positions" })
-    .get("/",            handleGetAllPositionPreviews  as F)
-    .get("/:positionID", handleGetPositionByPositionID as F)
+    .get("/",            toRouteHandler(handleGetAllPositionPreviews))
+    .get("/:positionID", toRouteHandler(handleGetPositionByPositionID))
 
-    .post("/", handleCreatePosition as F)
+    .post("/", toRouteHandler(handleCreatePosition))
 
-    .patch("/:positionID", handleUpdatePositionByPositionID as F)
+    .patch("/:positionID", toRouteHandler(handleUpdatePositionByPositionID))
 
-    .delete("/",            handleDeleteAllPositions         as F)
-    .delete("/:positionID", handleDeletePositionByPositionID as F)
+    .delete("/",            toRouteHandler(handleDeleteAllPositions))
+    .delete("/:positionID", toRouteHandler(handleDeletePositionByPositionID))

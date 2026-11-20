@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { readInteger, readString, toRecord } from "@lib:templates/request_values";
 import { Nullable } from "@lib:types/nullable";
 import { validateAccessPermission } from "@service:permission/permission";
 
@@ -39,7 +40,9 @@ export async function handleGetStaffRelationsToAllPositionsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -65,7 +68,9 @@ export async function handleDeleteStaffRelationToAllPositionsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -109,7 +114,9 @@ export async function handleDeleteAllStaffRelationsToPositionByPositionID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const positionID: number = Number(d.params?.positionID);
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const positionID: number = Number(params.positionID);
 
     if (!Number.isInteger(positionID) || positionID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid position ID.").unwrap(d.set);
@@ -134,10 +141,13 @@ export async function handleSetStaffRelationToPositionByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const positionID   : number = Number(d.params?.positionID ?? d.body?.positionID);
-    const preference   : number = d.body?.preference;
-    const proficiency  : number = d.body?.proficiency;
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const positionID   : number = Number(params.positionID ?? body.positionID);
+    const preference   : number = readInteger(body, "preference") ?? Number.NaN;
+    const proficiency  : number = readInteger(body, "proficiency") ?? Number.NaN;
 
     if (targetStaffID.trim() === "" || !Number.isInteger(positionID) || positionID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid staff ID or position ID.").unwrap(d.set);
@@ -183,8 +193,10 @@ export async function handleUnsetStaffRelationToPositionByPositionID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const positionID   : number = Number(d.params?.positionID);
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const positionID   : number = Number(params.positionID);
 
     if (targetStaffID.trim() === "" || !Number.isInteger(positionID) || positionID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid staff ID or position ID.").unwrap(d.set);

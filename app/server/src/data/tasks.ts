@@ -4,6 +4,7 @@ import      { Result }           from "@lib:templates/result";
 import type { WeekdayShortName } from "@lib:enums/datetime";
 
 import type { Task } from "@model:tasks";
+import      { validateTask } from "@model:tasks";
 
 export async function getAllTasks(
     sql: SQL
@@ -23,6 +24,10 @@ export async function getAllTasks(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateTask)) {
         return new Result<R>(false, null);
     }
 
@@ -53,6 +58,10 @@ export async function getAllTasksByDay(
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateTask)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -80,7 +89,13 @@ export async function getTaskByTaskID(
         return new Result<Task>(false, null);
     }
 
-    return new Result<Task>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateTask(first)) {
+        return new Result<Task>(false, null);
+    }
+
+    return new Result<Task>(true, first);
 }
 
 export async function searchTasksByTaskName(
@@ -109,6 +124,10 @@ export async function searchTasksByTaskName(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateTask)) {
         return new Result<R>(false, null);
     }
 
@@ -185,7 +204,13 @@ export async function updateTaskByTaskID(
         return new Result<Task>(false, null);
     }
 
-    return new Result<Task>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateTask(first)) {
+        return new Result<Task>(false, null);
+    }
+
+    return new Result<Task>(true, first);
 }
 
 export async function deleteAllTasks(

@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { readString, toRecord } from "@lib:templates/request_values";
 import { Nullable } from "@lib:types/nullable";
 import { validateAccessPermission } from "@service:permission/permission";
 
@@ -40,8 +41,11 @@ export async function handleAddEmail(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const email        : string = d.body?.email ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const email        : string = readString(body, "email") ?? '';
 
     if (targetStaffID.trim() === "" || email.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or email.").unwrap(d.set);
@@ -71,9 +75,12 @@ export async function handleUpdateEmailByEmailAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const oldEmail     : string = d.params?.email ?? d.body?.oldEmail ?? '';
-    const newEmail     : string = d.body?.newEmail ?? d.body?.email ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const oldEmail     : string = readString(params, "email") ?? readString(body, "oldEmail") ?? '';
+    const newEmail     : string = readString(body, "newEmail") ?? readString(body, "email") ?? '';
 
     if (targetStaffID.trim() === "" || oldEmail.trim() === "" || newEmail.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or email.").unwrap(d.set);
@@ -103,8 +110,11 @@ export async function handleDeleteEmailByEmailAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const email        : string = d.params?.email ?? d.body?.email ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const email        : string = readString(params, "email") ?? readString(body, "email") ?? '';
 
     if (targetStaffID.trim() === "" || email.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or email.").unwrap(d.set);
@@ -148,7 +158,9 @@ export async function handleGetEmailsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID in URL.").unwrap(d.set);
@@ -179,9 +191,12 @@ export async function handleGetEmailsByStaffID(
 export async function handleUpdateEmail(
     d: ServiceDependencies
 ): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const email: string = d.params?.email ?? d.body?.oldEmail ?? '';
-    const newEmail: string = d.body?.newEmail ?? d.body?.email ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const email: string = readString(params, "email") ?? readString(body, "oldEmail") ?? '';
+    const newEmail: string = readString(body, "newEmail") ?? readString(body, "email") ?? '';
 
     if (targetStaffID.trim() === "" || email.trim() === "" || newEmail.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or email.").unwrap(d.set);
@@ -209,8 +224,11 @@ export async function handleUpdateEmail(
 export async function handleDeleteEmailByEmail(
     d: ServiceDependencies
 ): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const email: string = d.params?.email ?? d.body?.email ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const email: string = readString(params, "email") ?? readString(body, "email") ?? '';
 
     if (targetStaffID.trim() === "" || email.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or email.").unwrap(d.set);

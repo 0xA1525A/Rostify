@@ -49,21 +49,24 @@ export function validatePassword(password: Option<string>, confirmPassword: Opti
     return new Result<string>(true, null);
 }
 
-export function validateLoginInfo(body: any): Result<string> {
+export function validateLoginInfo(body: unknown): Result<string> {
     if (body === undefined || body === null) {
         return new Result<string>(false, "Malformed request body. Body is undefined or null.");
     }
 
-    if (typeof body.username !== "string" || typeof body.password !== "string") {
+    if (typeof body !== "object") {
+        return new Result<string>(false, "Malformed request body. Body must be an object.");
+    }
+
+    if (!("username" in body) || !("password" in body)) {
+        return new Result<string>(false, "Malformed request body. `username` and `password` are required.");
+    }
+
+    const username: unknown = Reflect.get(body, "username");
+    const password: unknown = Reflect.get(body, "password");
+
+    if (typeof username !== "string" || typeof password !== "string") {
         return new Result<string>(false, "Malformed request body. `username` and `password` must be string.");
-    }
-
-    if (body.username === undefined || body.username === null) {
-        return new Result<string>(false, "Malformed request body. `username` is undefined or null.");
-    }
-
-    if (body.password === undefined || body.password === null) {
-        return new Result<string>(false, "Malformed request body. `password` is undefined or null.");
     }
 
     return new Result<string>(true, null);

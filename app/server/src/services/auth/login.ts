@@ -3,6 +3,7 @@ import type { Result }     from "@lib:templates/result"
 import type { Nullable }   from "@lib:types/nullable";
 import      { ServiceDependencies } from "@lib:templates/service_deps";
 import      { Response, type RFServerResponse } from "@lib:templates/response";
+import      { readString, toRecord } from "@lib:templates/request_values";
 
 import { getLoginByUsername } from "@data:logins";
 import { getStaffByStaffID }                  from "@data:staff";
@@ -19,6 +20,8 @@ export async function handleLogin(d: ServiceDependencies): Promise<RFServerRespo
         return new Response(false, HTTPStatus.INTERNAL_SERVER_ERROR, "SQL connection is undefined or null.").unwrap(d.set);
     }
 
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const validateResult: Result<string>   = validateLoginInfo(d.body);
     const errorMessage  : Nullable<string> = validateResult.getData();
 
@@ -26,8 +29,8 @@ export async function handleLogin(d: ServiceDependencies): Promise<RFServerRespo
         return new Response(false, HTTPStatus.BAD_REQUEST, errorMessage ?? "Invalid login information.").unwrap(d.set);
     }
 
-    const username: string = d.body.username;
-    const password: string = d.body.password;
+    const username: string = readString(body, "username") ?? '';
+    const password: string = readString(body, "password") ?? '';
 
     const getCredentialsResult: Result<Login>   = await getLoginByUsername(d.sql, username);
     const credentials         : Nullable<Login> = getCredentialsResult.getData();

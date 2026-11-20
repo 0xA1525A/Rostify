@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 
 import { handleLogin }    from "@service:auth/login";
 import { handleRegister } from "@service:auth/register";
@@ -15,21 +15,19 @@ import {
 } from "@service:auth/accounts";
 import { handleGetStaffByToken } from "@service:auth/sessions";
 
-type F = Fn<[unknown], unknown>;
-
 export const authRoutes = new Elysia({ prefix: "/auth" })
-    .get("/who-am-i", handleGetStaffByToken as F)
+    .get("/who-am-i", toRouteHandler(handleGetStaffByToken))
 
-    .post("/login",    handleLogin    as F)
-    .post("/register", handleRegister as F)
-    .post("/logout",   handleLogout   as F)
+    .post("/login",    toRouteHandler(handleLogin))
+    .post("/register", toRouteHandler(handleRegister))
+    .post("/logout",   toRouteHandler(handleLogout))
 
-    .post("/password-reset", handlePasswordReset as F)
+    .post("/password-reset", toRouteHandler(handlePasswordReset))
 
-    .get("/accounts",          handleGetAllLoginAccounts      as F)
-    .get("/accounts/:staffID", handleGetLoginAccountByStaffID as F)
+    .get("/accounts",          toRouteHandler(handleGetAllLoginAccounts))
+    .get("/accounts/:staffID", toRouteHandler(handleGetLoginAccountByStaffID))
 
-    .patch("/accounts/:staffID", handleUpdateLoginAccountByStaffID as F)
+    .patch("/accounts/:staffID", toRouteHandler(handleUpdateLoginAccountByStaffID))
 
-    .delete("/accounts",          handleDeleteAllLoginAccounts      as F)
-    .delete("/accounts/:staffID", handleDeleteLoginAccountByStaffID as F)
+    .delete("/accounts",          toRouteHandler(handleDeleteAllLoginAccounts))
+    .delete("/accounts/:staffID", toRouteHandler(handleDeleteLoginAccountByStaffID))

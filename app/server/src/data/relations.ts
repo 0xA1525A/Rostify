@@ -1,26 +1,18 @@
-import { SQL } from "bun";
+import type { SQL } from "bun";
 
 import { Result } from "@lib:templates/result";
 
-export interface StaffShiftRelation {
-    staffID: string;
-    shiftID: number;
-    preference: number;
-    proficiency: number;
-}
 
-export interface StaffPositionRelation {
-    staffID: string;
-    positionID: number;
-    preference: number;
-    proficiency: number;
-}
+import {
+    type StaffPeerRelation,
+    type StaffPositionRelation,
+    type StaffShiftRelation,
+    validateStaffPeerRelation,
+    validateStaffPositionRelation,
+    validateStaffShiftRelation
+} from "@model:relations";
 
-export interface StaffPeerRelation {
-    staffAID: string;
-    staffBID: string;
-    preference: number;
-}
+export type { StaffPeerRelation, StaffPositionRelation, StaffShiftRelation } from "@model:relations";
 
 export async function getAllStaffRelationsToAllStaff(sql: SQL): Promise<Result<Array<StaffPeerRelation>>> {
     type R = Array<StaffPeerRelation>;
@@ -38,6 +30,10 @@ export async function getAllStaffRelationsToAllStaff(sql: SQL): Promise<Result<A
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffPeerRelation)) {
         return new Result<R>(false, null);
     }
 
@@ -66,6 +62,10 @@ export async function getStaffRelationsToAllStaffByStaffID(sql: SQL, staffID: st
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffPeerRelation)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -86,6 +86,10 @@ export async function getAllStaffRelationsToAllShifts(sql: SQL): Promise<Result<
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffShiftRelation)) {
         return new Result<R>(false, null);
     }
 
@@ -113,6 +117,10 @@ export async function getStaffRelationsToAllShiftsByStaffID(sql: SQL, staffID: s
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffShiftRelation)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -133,6 +141,10 @@ export async function getAllStaffRelationsToAllPositions(sql: SQL): Promise<Resu
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffPositionRelation)) {
         return new Result<R>(false, null);
     }
 
@@ -157,6 +169,10 @@ export async function getStaffRelationsToAllPositionsByStaffID(sql: SQL, staffID
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffPositionRelation)) {
         return new Result<R>(false, null);
     }
 

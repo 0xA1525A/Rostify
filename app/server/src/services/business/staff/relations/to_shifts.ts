@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, type RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { readInteger, readString, toRecord } from "@lib:templates/request_values";
 import type { Nullable } from "@lib:types/nullable";
 
 import { validateAccessPermission } from "@service:permission/permission";
@@ -40,7 +41,9 @@ export async function handleGetStaffRelationsToAllShiftsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -66,7 +69,9 @@ export async function handleDeleteStaffRelationToAllShiftsByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -91,7 +96,9 @@ export async function handleDeleteAllStaffRelationsToShiftByShiftID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const shiftID: number = Number(d.params?.shiftID);
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const shiftID: number = Number(params.shiftID);
 
     if (!Number.isInteger(shiftID) || shiftID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid shift ID.").unwrap(d.set);
@@ -116,10 +123,13 @@ export async function handleSetStaffRelationToShift(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const shiftID      : number = Number(d.params?.shiftID ?? d.body?.shiftID);
-    const preference   : number = d.body?.preference;
-    const proficiency  : number = d.body?.proficiency;
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const shiftID      : number = Number(params.shiftID ?? body.shiftID);
+    const preference   : number = readInteger(body, "preference") ?? Number.NaN;
+    const proficiency  : number = readInteger(body, "proficiency") ?? Number.NaN;
 
     if (targetStaffID.trim() === "" || !Number.isInteger(shiftID) || shiftID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid staff ID or shift ID.").unwrap(d.set);
@@ -163,8 +173,10 @@ export async function handleUnsetStaffRelationToShiftByShiftID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const shiftID      : number = Number(d.params?.shiftID);
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const shiftID      : number = Number(params.shiftID);
 
     if (targetStaffID.trim() === "" || !Number.isInteger(shiftID) || shiftID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid staff ID or shift ID.").unwrap(d.set);

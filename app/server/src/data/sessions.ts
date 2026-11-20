@@ -3,7 +3,9 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { Session }    from "@model:sessions";
-import type { StaffPrivilege } from "@model:staff";
+import      { validateSession } from "@model:sessions";
+import type { SessionPrincipal } from "@model:relations";
+import { validateSessionPrincipal } from "@model:relations";
 
 export async function getSessionByStaffID(
     sql    : SQL,
@@ -25,18 +27,20 @@ export async function getSessionByStaffID(
         return new Result<Session>(false, null);
     }
 
-    return new Result<Session>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateSession(first)) {
+        return new Result<Session>(false, null);
+    }
+
+    return new Result<Session>(true, first);
 }
 
 export async function getTokenPrincipalByToken(
     sql  : SQL,
     token: string
-): Promise<Result<{ id: string, privilege: StaffPrivilege }>> {
-    type E = {
-        id: string,
-        privilege: StaffPrivilege
-    };
-    type R = Array<E>;
+): Promise<Result<SessionPrincipal>> {
+    type R = Array<SessionPrincipal>;
 
     const result: R = await sql`
         SELECT  s.id,
@@ -50,10 +54,16 @@ export async function getTokenPrincipalByToken(
     `;
 
     if (result.length === 0) {
-        return new Result<E>(false, null);
+        return new Result<SessionPrincipal>(false, null);
     }
 
-    return new Result<E>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateSessionPrincipal(first)) {
+        return new Result<SessionPrincipal>(false, null);
+    }
+
+    return new Result<SessionPrincipal>(true, first);
 }
 
 export async function createSessionByStaffID(

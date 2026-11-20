@@ -1,19 +1,17 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import { handleCreateUnit, handleDeleteAllUnits, handleDeleteUnitByUnitID, handleGetAllUnits, handleGetUnitByUnitID, handleUpdateUnitByUnitID } from "@service:business/units";
 import { handleGetAllPositionPreviewsInUnitByUnitID } from "@service:business/positions";
 
-type F = Fn<[unknown], unknown>;
-
 export const unitRoutes = new Elysia({ prefix: "/units" })
-    .get("/",                  handleGetAllUnits as F)
-    .get("/:unitID",           handleGetUnitByUnitID as F)
-    .get("/:unitID/positions", handleGetAllPositionPreviewsInUnitByUnitID as F)
+    .get("/",                  toRouteHandler(handleGetAllUnits))
+    .get("/:unitID",           toRouteHandler(handleGetUnitByUnitID))
+    .get("/:unitID/positions", toRouteHandler(handleGetAllPositionPreviewsInUnitByUnitID))
 
-    .post("/", handleCreateUnit as F)
+    .post("/", toRouteHandler(handleCreateUnit))
 
-    .patch("/:unitID", handleUpdateUnitByUnitID as F)
+    .patch("/:unitID", toRouteHandler(handleUpdateUnitByUnitID))
 
-    .delete("/",        handleDeleteAllUnits as F)
-    .delete("/:unitID", handleDeleteUnitByUnitID as F)
+    .delete("/",        toRouteHandler(handleDeleteAllUnits))
+    .delete("/:unitID", toRouteHandler(handleDeleteUnitByUnitID))

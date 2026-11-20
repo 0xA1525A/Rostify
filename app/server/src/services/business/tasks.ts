@@ -5,6 +5,13 @@ import type { ServiceDependencies }             from "@lib:templates/service_dep
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
 import {
+    readBoolean,
+    readNullableInteger,
+    readString,
+    toRecord
+} from "@lib:templates/request_values";
+
+import {
     createTask,
     deleteAllTasks,
     deleteTaskByTaskID,
@@ -39,7 +46,8 @@ export async function handleGetAllTasks(d: ServiceDependencies): Promise<RFServe
 }
 
 export async function handleGetTaskByTaskID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const taskID: string = d.params.taskID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const taskID: string                  = readString(params, "taskID") ?? '';
 
     if (Number.isNaN(Number.parseInt(taskID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing task ID.").unwrap(d.set);
@@ -62,7 +70,8 @@ export async function handleGetTaskByTaskID(d: ServiceDependencies): Promise<RFS
 }
 
 export async function handleSearchTasksByName(d: ServiceDependencies): Promise<RFServerResponse> {
-    const taskName: string = d.params.taskName ?? '';
+    const params  : Record<string, unknown> = toRecord(d.params);
+    const taskName: string                  = readString(params, "taskName") ?? '';
 
     if (!taskName.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing task name.").unwrap(d.set);
@@ -87,7 +96,8 @@ export async function handleSearchTasksByName(d: ServiceDependencies): Promise<R
 }
 
 export async function handleGetAllTasksInDay(d: ServiceDependencies): Promise<RFServerResponse> {
-    const taskDay: string = d.params.taskDay ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const taskDay: string                 = readString(params, "taskDay") ?? '';
 
     if (!taskDay.trim()) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing task name.").unwrap(d.set);
@@ -116,25 +126,25 @@ export async function handleGetAllTasksInDay(d: ServiceDependencies): Promise<RF
 }
 
 export async function handleCreateTask(d: ServiceDependencies): Promise<RFServerResponse> {
+    const body: Record<string, unknown> = toRecord(d.body);
+
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const taskInfo: Task = {
-        id         : 0, // placeholder.
-        day        : d.body.day         ?? '',
-        isHoliday  : d.body.isHoliday   ?? '',
-        name       : d.body.name        ?? '',
-        description: d.body.description ?? '',
-        responsibleUnitID: d.body.responsibleUnitID ?? null,
-        responsiblePositionID: d.body.responsiblePositionID ?? null
+    const taskInfo: unknown = {
+        id         : 0,
+        day        : readString(body, "day") ?? '',
+        isHoliday  : readBoolean(body, "isHoliday") ?? '',
+        name       : readString(body, "name") ?? '',
+        description: readString(body, "description") ?? '',
+        responsibleUnitID: readNullableInteger(body, "responsibleUnitID") ?? null,
+        responsiblePositionID: readNullableInteger(body, "responsiblePositionID") ?? null
     }
 
-    const validateTaskInfo: boolean = validateTask(taskInfo);
-
-    if (!validateTaskInfo) {
+    if (!validateTask(taskInfo)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed task info.").unwrap(d.set);
     }
 
@@ -155,7 +165,9 @@ export async function handleUpdateTaskByTaskID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetTaskID: string = d.params.taskID ?? '';
+    const params      : Record<string, unknown> = toRecord(d.params);
+    const body        : Record<string, unknown> = toRecord(d.body);
+    const targetTaskID: string                  = readString(params, "taskID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetTaskID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing parameter: Task ID.").unwrap(d.set);
@@ -168,19 +180,17 @@ export async function handleUpdateTaskByTaskID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.NOT_FOUND, "Task not found.").unwrap(d.set);
     }
 
-    const newTask: Task = {
-        id         : 0, // placeholder.
-        day        : d.body.day         ?? oldTask.day,
-        isHoliday  : d.body.isHoliday   ?? oldTask.isHoliday,
-        name       : d.body.name        ?? oldTask.name,
-        description: d.body.description ?? oldTask.description,
-        responsibleUnitID: d.body.responsibleUnitID ?? oldTask.responsibleUnitID,
-        responsiblePositionID: d.body.responsiblePositionID ?? oldTask.responsiblePositionID
+    const newTask: unknown = {
+        id         : 0,
+        day        : readString(body, "day") ?? oldTask.day,
+        isHoliday  : readBoolean(body, "isHoliday") ?? oldTask.isHoliday,
+        name       : readString(body, "name") ?? oldTask.name,
+        description: readString(body, "description") ?? oldTask.description,
+        responsibleUnitID: readNullableInteger(body, "responsibleUnitID") ?? oldTask.responsibleUnitID,
+        responsiblePositionID: readNullableInteger(body, "responsiblePositionID") ?? oldTask.responsiblePositionID
     }
 
-    const validateTaskInfo: boolean = validateTask(newTask);
-
-    if (!validateTaskInfo) {
+    if (!validateTask(newTask)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Malformed task info.").unwrap(d.set);
     }
 
@@ -217,7 +227,8 @@ export async function handleDeleteTaskByTaskID(d: ServiceDependencies): Promise<
         return new Response(false, HTTPStatus.FORBIDDEN, "Insufficient permission.").unwrap(d.set);
     }
 
-    const targetTaskID: string = d.params.taskID ?? '';
+    const params      : Record<string, unknown> = toRecord(d.params);
+    const targetTaskID: string                  = readString(params, "taskID") ?? '';
 
     if (Number.isNaN(Number.parseInt(targetTaskID))) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing task ID.").unwrap(d.set);

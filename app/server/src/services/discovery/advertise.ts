@@ -20,6 +20,12 @@ export interface RostifyAdvertisement {
     stop(): Promise<void>;
 }
 
+type StopService = (callback: () => void) => void;
+
+function isStopService(value: unknown): value is StopService {
+    return typeof value === "function";
+}
+
 export async function advertiseRostifyOnNetwork(
     d: AdvertisementDependencies
 ): Promise<Result<RostifyAdvertisement | string>> {
@@ -53,7 +59,13 @@ export async function advertiseRostifyOnNetwork(
         stopped = true;
 
         await new Promise<void>((resolve) => {
-            service.stop((): void => {
+            const stop: unknown = service.stop;
+
+            if (!isStopService(stop)) {
+                throw new TypeError("Service stop function is unavailable.");
+            }
+
+            stop.call(service, (): void => {
                 bonjour.destroy();
 
                 resolve();

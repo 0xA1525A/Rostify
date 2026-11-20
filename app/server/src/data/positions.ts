@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { Position, PositionPreview } from "@model:positions";
+import      { validatePosition, validatePositionPreview } from "@model:positions";
 
 export async function getAllPositionPreviews(sql: SQL): Promise<Result<Array<PositionPreview>>> {
     type R = Array<PositionPreview>;
@@ -20,6 +21,10 @@ export async function getAllPositionPreviews(sql: SQL): Promise<Result<Array<Pos
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validatePositionPreview)) {
         return new Result<R>(false, null);
     }
 
@@ -55,6 +60,10 @@ export async function getAllPositions(sql: SQL): Promise<Result<Array<Position>>
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validatePosition)) {
         return new Result<R>(false, null);
     }
 
@@ -95,7 +104,13 @@ export async function getPositionByID(
         return new Result<Position>(false, null);
     }
 
-    return new Result<Position>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validatePosition(first)) {
+        return new Result<Position>(false, null);
+    }
+
+    return new Result<Position>(true, first);
 }
 
 export async function getAllPositionPreviewsInUnitByID(
@@ -119,6 +134,10 @@ export async function getAllPositionPreviewsInUnitByID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validatePositionPreview)) {
         return new Result<R>(false, null);
     }
 
@@ -150,6 +169,10 @@ export async function searchPositionPreviewsBySimilarNames(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validatePositionPreview)) {
         return new Result<R>(false, null);
     }
 
@@ -279,7 +302,13 @@ export async function updatePositionByPositionID(
         return new Result<Position>(false, null);
     }
 
-    return new Result<Position>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validatePosition(first)) {
+        return new Result<Position>(false, null);
+    }
+
+    return new Result<Position>(true, first);
 }
 
 export async function deleteAllPositions(sql: SQL): Promise<Result<null>> {

@@ -52,11 +52,6 @@ function fallbackAvailability(date: string, staffID: string): StaffAvailability 
     };
 }
 
-/**
- * Reassigns one staff member to a different shift on an already-generated day,
- * then rebuilds only that person's punches and position schedule so the rest of
- * the day's manual moves stay untouched.
- */
 export async function moveStaffShift(
     sql: SQL,
     date: string,

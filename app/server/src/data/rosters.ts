@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { ClockEvent, DailyRosterEntry, RosterPunch, RosterRecord } from "@model:rosters";
+import      { validateRosterRecord, validateRosterPunch, validateDailyRosterEntry } from "@model:rosters";
 
 export async function getAllRosterRecords(sql: SQL): Promise<Result<Array<RosterRecord>>> {
     type R = Array<RosterRecord>;
@@ -21,6 +22,10 @@ export async function getAllRosterRecords(sql: SQL): Promise<Result<Array<Roster
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateRosterRecord)) {
         return new Result<R>(false, null);
     }
 
@@ -48,6 +53,10 @@ export async function getRosterRecordsByDate(sql: SQL, date: string): Promise<Re
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateRosterRecord)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -69,6 +78,10 @@ export async function getRosterRecordsByStaffID(sql: SQL, staffID: string): Prom
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateRosterRecord)) {
         return new Result<R>(false, null);
     }
 
@@ -98,7 +111,13 @@ export async function getRosterRecordByDateAndStaffID(
         return new Result<RosterRecord>(false, null);
     }
 
-    return new Result<RosterRecord>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateRosterRecord(first)) {
+        return new Result<RosterRecord>(false, null);
+    }
+
+    return new Result<RosterRecord>(true, first);
 }
 
 export async function getRosterRecordByID(sql: SQL, rosterRecordID: number): Promise<Result<RosterRecord>> {
@@ -119,7 +138,13 @@ export async function getRosterRecordByID(sql: SQL, rosterRecordID: number): Pro
         return new Result<RosterRecord>(false, null);
     }
 
-    return new Result<RosterRecord>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateRosterRecord(first)) {
+        return new Result<RosterRecord>(false, null);
+    }
+
+    return new Result<RosterRecord>(true, first);
 }
 
 export async function getAllRosterPunches(sql: SQL): Promise<Result<Array<RosterPunch>>> {
@@ -137,6 +162,10 @@ export async function getAllRosterPunches(sql: SQL): Promise<Result<Array<Roster
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateRosterPunch)) {
         return new Result<R>(false, null);
     }
 
@@ -163,6 +192,10 @@ export async function getRosterPunchesByRosterRecordID(sql: SQL, rosterRecordID:
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateRosterPunch)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -186,6 +219,10 @@ export async function getRosterPunchesByDate(sql: SQL, date: string): Promise<Re
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateRosterPunch)) {
         return new Result<R>(false, null);
     }
 
@@ -258,7 +295,13 @@ export async function updateRosterRecordByDateAndStaffID(
         return new Result<RosterRecord>(false, null);
     }
 
-    return new Result<RosterRecord>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateRosterRecord(first)) {
+        return new Result<RosterRecord>(false, null);
+    }
+
+    return new Result<RosterRecord>(true, first);
 }
 
 export async function createRosterPunch(
@@ -413,6 +456,10 @@ export async function getDailyRosterByDate(
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateDailyRosterEntry)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -441,6 +488,10 @@ export async function getRosterPunchesByDateAndStaffID(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateRosterPunch)) {
         return new Result<R>(false, null);
     }
 

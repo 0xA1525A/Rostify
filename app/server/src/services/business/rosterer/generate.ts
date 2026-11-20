@@ -122,8 +122,6 @@ export function planPunches(
     let breakCount: number = availability.okMultipleBreak ? 2 : 1;
     let breakMinutes: number = (availability.preferredBreakHour ?? 1) * 60;
 
-    // Keep punches sequential and inside the shift: shrink or drop breaks when
-    // they would overlap or leave no working time.
     while (breakCount > 0 && totalMinutes <= breakCount * breakMinutes * 2) {
         if (breakCount > 1) {
             breakCount -= 1;

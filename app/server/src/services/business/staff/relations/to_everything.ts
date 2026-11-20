@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { readString, toRecord } from "@lib:templates/request_values";
 import { validateAccessPermission } from "@service:permission/permission";
 
 import {
@@ -16,7 +17,9 @@ import {
 } from "@data:relations";
 
 export async function handleDeleteStaffRelationToEverythingByStaffID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -84,7 +87,9 @@ export async function handleGetAllStaffRelationsToEverything(d: ServiceDependenc
 }
 
 export async function handleGetStaffRelationToEverythingByStaffID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);

@@ -1,5 +1,7 @@
-import { Type, Static } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { Type } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
+
+import { compileSchema, DateSchema, DateTimeSchema, PositiveIntegerSchema, UUIDSchema } from "@model:common";
 
 export const ClockEventSchema = Type.Union([
     Type.Literal("in"),
@@ -7,22 +9,22 @@ export const ClockEventSchema = Type.Union([
 ]);
 
 export const RosterRecordSchema = Type.Object({
-    id     : Type.Integer(),
-    date   : Type.String({ format: "date" }),
-    staffID: Type.String({ format: "uuid" }),
-    shiftID: Type.Integer()
+    id     : PositiveIntegerSchema,
+    date   : DateSchema,
+    staffID: UUIDSchema,
+    shiftID: PositiveIntegerSchema
 });
 
 export const RosterPunchSchema = Type.Object({
-    rosterRecordID: Type.Integer(),
-    dateTime      : Type.String({ format: "date-time" }),
+    rosterRecordID: PositiveIntegerSchema,
+    dateTime      : DateTimeSchema,
     clockEvent    : ClockEventSchema
 });
 
 export const DailyRosterEntrySchema = Type.Object({
-    id       : Type.Integer(),
-    date     : Type.String({ format: "date" }),
-    staff_id : Type.String({ format: "uuid" }),
+    id       : PositiveIntegerSchema,
+    date     : DateSchema,
+    staff_id : UUIDSchema,
     shift    : Type.String({ minLength: 1 })
 });
 
@@ -31,8 +33,12 @@ export type RosterRecord     = Static<typeof RosterRecordSchema>;
 export type RosterPunch      = Static<typeof RosterPunchSchema>;
 export type DailyRosterEntry = Static<typeof DailyRosterEntrySchema>;
 
-const checkRosterRecord = TypeCompiler.Compile(RosterRecordSchema);
-const checkRosterPunch  = TypeCompiler.Compile(RosterPunchSchema);
+const checkClockEvent       = compileSchema(ClockEventSchema);
+const checkRosterRecord     = compileSchema(RosterRecordSchema);
+const checkRosterPunch      = compileSchema(RosterPunchSchema);
+const checkDailyRosterEntry = compileSchema(DailyRosterEntrySchema);
 
-export const validateRosterRecord: (v: unknown) => v is RosterRecord = (v: unknown): v is RosterRecord => checkRosterRecord.Check(v);
-export const validateRosterPunch : (v: unknown) => v is RosterPunch  = (v: unknown): v is RosterPunch  => checkRosterPunch.Check(v);
+export const validateClockEvent       = (value: unknown): value is ClockEvent       => checkClockEvent.Check(value);
+export const validateRosterRecord     = (value: unknown): value is RosterRecord     => checkRosterRecord.Check(value);
+export const validateRosterPunch      = (value: unknown): value is RosterPunch      => checkRosterPunch.Check(value);
+export const validateDailyRosterEntry = (value: unknown): value is DailyRosterEntry => checkDailyRosterEntry.Check(value);

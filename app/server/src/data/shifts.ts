@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { Shift } from "@model:shifts";
+import      { validateShift } from "@model:shifts";
 
 export async function getAllShifts(sql: SQL): Promise<Result<Array<Shift>>> {
     type R = Array<Shift>;
@@ -21,6 +22,10 @@ export async function getAllShifts(sql: SQL): Promise<Result<Array<Shift>>> {
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateShift)) {
         return new Result<R>(false, null);
     }
 
@@ -49,7 +54,13 @@ export async function getShiftByShiftID(sql: SQL, shiftID: number): Promise<Resu
         return new Result<Shift>(false, null);
     }
 
-    return new Result<Shift>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateShift(first)) {
+        return new Result<Shift>(false, null);
+    }
+
+    return new Result<Shift>(true, first);
 }
 
 export async function searchShiftsByShiftName(
@@ -74,6 +85,10 @@ export async function searchShiftsByShiftName(
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateShift)) {
         return new Result<R>(false, null);
     }
 
@@ -147,7 +162,13 @@ export async function updateShiftByShiftID(sql: SQL, shiftID: number, newShift: 
         return new Result<Shift>(false, null);
     }
 
-    return new Result<Shift>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateShift(first)) {
+        return new Result<Shift>(false, null);
+    }
+
+    return new Result<Shift>(true, first);
 }
 
 export async function deleteAllShifts(sql: SQL): Promise<Result<null>> {

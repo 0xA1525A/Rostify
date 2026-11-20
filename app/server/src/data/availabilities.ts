@@ -3,6 +3,7 @@ import { SQL } from "bun";
 import { Result } from "@lib:templates/result";
 
 import type { StaffAvailability } from "@model:staff";
+import      { validateStaffAvailability } from "@model:staff";
 
 export async function getAllAvailabilities(sql: SQL): Promise<Result<Array<StaffAvailability>>> {
     type R = Array<StaffAvailability>;
@@ -29,6 +30,10 @@ export async function getAllAvailabilities(sql: SQL): Promise<Result<Array<Staff
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffAvailability)) {
         return new Result<R>(false, null);
     }
 
@@ -64,6 +69,10 @@ export async function getAvailabilitiesByStaffID(sql: SQL, staffID: string): Pro
         return new Result<R>(false, null);
     }
 
+    if (!result.every(validateStaffAvailability)) {
+        return new Result<R>(false, null);
+    }
+
     return new Result<R>(true, result);
 }
 
@@ -93,6 +102,10 @@ export async function getAvailabilitiesByDate(sql: SQL, date: string): Promise<R
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateStaffAvailability)) {
         return new Result<R>(false, null);
     }
 
@@ -126,7 +139,13 @@ export async function getAvailabilityByDateAndStaffID(sql: SQL, staffID: string,
         return new Result<StaffAvailability>(false, null);
     }
 
-    return new Result<StaffAvailability>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateStaffAvailability(first)) {
+        return new Result<StaffAvailability>(false, null);
+    }
+
+    return new Result<StaffAvailability>(true, first);
 }
 
 export async function createAvailabilityByDateAndStaffID(

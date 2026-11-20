@@ -1,14 +1,16 @@
-import { Type, Static } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { Type } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
+
+import { compileSchema, DateTimeSchema, UUIDSchema } from "@model:common";
 
 export const SessionSchema = Type.Object({
-    token    : Type.String({ format: "uuid" }),
-    staffID  : Type.String({ format: "uuid" }),
-    createdAt: Type.String({ format: "date-time" })
+    token     : UUIDSchema,
+    staffID   : UUIDSchema,
+    createdAt : DateTimeSchema
 });
 
 export type Session = Static<typeof SessionSchema>;
 
-const checkSession = TypeCompiler.Compile(SessionSchema);
+const checkSession = compileSchema(SessionSchema);
 
-export const validateSession: (v: unknown) => v is Session = (v: unknown): v is Session => checkSession.Check(v);
+export const validateSession = (value: unknown): value is Session => checkSession.Check(value);

@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, type RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import type { ServiceDependencies } from "@lib:templates/service_deps";
+import { readString, toRecord } from "@lib:templates/request_values";
 import type { Nullable } from "@lib:types/nullable";
 
 import {
@@ -43,13 +44,15 @@ import {
 } from "@model:schedules";
 
 function getDateParam(d: ServiceDependencies): Nullable<string> {
-    const date: string = d.params?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const date  : string                  = readString(params, "date") ?? '';
 
     return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }
 
 function getStaffIDParam(d: ServiceDependencies): Nullable<string> {
-    const staffID: string = d.params?.staffID ?? '';
+    const params : Record<string, unknown> = toRecord(d.params);
+    const staffID: string                  = readString(params, "staffID") ?? '';
 
     return staffID.trim() === '' ? null : staffID;
 }
@@ -244,17 +247,18 @@ export async function handleUpdateStaffScheduleOnDateByID(d: ServiceDependencies
         return new Response(false, HTTPStatus.NOT_FOUND, "Roster not found.").unwrap(d.set);
     }
 
-    const dateTime: string = d.body?.dateTime ?? '';
+    const body    : Record<string, unknown> = toRecord(d.body);
+    const dateTime: string                  = readString(body, "dateTime") ?? '';
 
     if (dateTime.trim() === '') {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing date and time.").unwrap(d.set);
     }
 
-    if (d.body?.positionID !== undefined) {
+    if (body.positionID !== undefined) {
         const positionData: unknown = {
             rosterRecordID: record.id,
             dateTime      : dateTime,
-            positionID    : d.body.positionID ?? null
+            positionID    : body.positionID ?? null
         };
 
         if (!validateSchedulePosition(positionData)) {
@@ -268,11 +272,11 @@ export async function handleUpdateStaffScheduleOnDateByID(d: ServiceDependencies
         }
     }
 
-    if (d.body?.taskID !== undefined) {
+    if (body.taskID !== undefined) {
         const taskData: unknown = {
             rosterRecordID: record.id,
             dateTime      : dateTime,
-            taskID        : Number(d.body.taskID)
+            taskID        : Number(body.taskID)
         };
 
         if (!validateScheduleTask(taskData)) {

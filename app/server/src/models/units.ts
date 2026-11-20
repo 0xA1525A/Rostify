@@ -1,5 +1,7 @@
-import { Type, Static } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { Type } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
+
+import { compileSchema, DescriptionSchema, PositiveIntegerSchema } from "@model:common";
 
 export const UnitWorkingAreaSchema = Type.Union([
     Type.Literal("boh"),
@@ -9,17 +11,17 @@ export const UnitWorkingAreaSchema = Type.Union([
 ]);
 
 export const UnitSchema = Type.Object({
-    id          : Type.Number(),
+    id          : PositiveIntegerSchema,
     name        : Type.String({ minLength: 1, maxLength: 25 }),
-    description : Type.String({ minLength: 0, maxLength: 200 }),
+    description : DescriptionSchema,
     workingArea : UnitWorkingAreaSchema
 });
 
 export type UnitWorkingArea = Static<typeof UnitWorkingAreaSchema>;
-export type Unit = Static<typeof UnitSchema>;
+export type Unit            = Static<typeof UnitSchema>;
 
-const checkUnitWorkingArea = TypeCompiler.Compile(UnitWorkingAreaSchema);
-const checkUnit = TypeCompiler.Compile(UnitSchema);
+const checkUnitWorkingArea = compileSchema(UnitWorkingAreaSchema);
+const checkUnit            = compileSchema(UnitSchema);
 
-export const validateUnitWorkingArea: (v: unknown) => v is UnitWorkingArea = (v: unknown): v is UnitWorkingArea => checkUnitWorkingArea.Check(v);
-export const validateUnit           : (v: unknown) => v is Unit            = (v: unknown): v is Unit            => checkUnit.Check(v);
+export const validateUnitWorkingArea = (value: unknown): value is UnitWorkingArea => checkUnitWorkingArea.Check(value);
+export const validateUnit            = (value: unknown): value is Unit            => checkUnit.Check(value);

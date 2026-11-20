@@ -166,8 +166,6 @@ export function generateSchedule(input: SchedulerInput): Result<SchedulerOutput>
     const countsBySlot: Map<string, Map<number, number>> = new Map<string, Map<number, number>>();
     const sumsBySlot: Map<string, Map<number, number>> = new Map<string, Map<number, number>>();
 
-    // When a target-staff position is full, move one existing member to their next
-    // preferred eligible position instead of pushing the newcomer somewhere worse.
     function relocateOverflow(
         fullPositionID: number,
         slotTime: string,
@@ -303,14 +301,15 @@ export function generateSchedule(input: SchedulerInput): Result<SchedulerOutput>
                     staffID       : interval.staffID
                 };
 
-                const severity: number = lastByStaff.has(interval.staffID)
-                    ? getActiveConflictSeverity(
-                        (lastByStaff.get(interval.staffID) as LastAssignment).positionID,
-                        (lastByStaff.get(interval.staffID) as LastAssignment).dateTime,
+                const previousAssignment: LastAssignment | undefined = lastByStaff.get(interval.staffID);
+                const severity: number = previousAssignment === undefined
+                    ? 0
+                    : getActiveConflictSeverity(
+                        previousAssignment.positionID,
+                        previousAssignment.dateTime,
                         candidate,
                         input.conflicts
-                    )
-                    : 0;
+                    );
 
                 if (severity === 5) {
                     continue;
@@ -349,8 +348,6 @@ export function generateSchedule(input: SchedulerInput): Result<SchedulerOutput>
                 }
             }
 
-            // A conflict-free position always wins. A soft conflict is only accepted
-            // when no clean alternative exists, preferring the lowest severity.
             const selected: Candidate | null = bestClean ?? bestConflicted;
 
             if (selected === null) {

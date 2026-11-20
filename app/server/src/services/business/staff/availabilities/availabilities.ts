@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import { ServiceDependencies } from "@lib:templates/service_deps";
+import { isRecord, readString, toRecord } from "@lib:templates/request_values";
 import { Nullable } from "@lib:types/nullable";
 import { StaffAvailability, validateStaffAvailability } from "@model:staff";
 import { validateAccessPermission } from "@service:permission/permission";
@@ -47,7 +48,9 @@ export async function handleGetAvailabilitiesByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID in URL.").unwrap(d.set);
@@ -79,7 +82,9 @@ export async function handleGetAvailabilitiesByDate(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetDate: string = d.params?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetDate: string = readString(params, "date") ?? '';
 
     if (targetDate.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing availability date.").unwrap(d.set);
@@ -110,11 +115,14 @@ export async function handleUpdateAvailability(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const targetDate   : string = d.params?.date ?? d.body?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const targetDate   : string = readString(params, "date") ?? readString(body, "date") ?? '';
 
     const availabilityData: unknown = {
-        ...d.body,
+        ...body,
         staffID: targetStaffID,
         date   : targetDate
     };
@@ -159,7 +167,7 @@ export async function handleUpdateAvailabilityByDateAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const availabilityData: unknown = d.body;
+    const availabilityData: unknown = toRecord(d.body);
 
     if (!validateStaffAvailability(availabilityData)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid staff availability information.").unwrap(d.set);
@@ -197,12 +205,16 @@ export async function handleCreateAvailability(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const body: any = d.body?.availability ?? d.body ?? {};
+    const body  : Record<string, unknown> = toRecord(d.body);
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const nestedAvailability: unknown = body.availability;
+    const source: Record<string, unknown> = isRecord(nestedAvailability) ? nestedAvailability : body;
 
     const availabilityData: unknown = {
-        ...body,
-        staffID: body.staffID ?? d.params?.staffID ?? '',
-        date   : body.date   ?? d.params?.date   ?? ''
+        ...source,
+        staffID: readString(source, "staffID") || readString(params, "staffID") || '',
+        date   : readString(source, "date")    || readString(params, "date")    || ''
     };
 
     if (!validateStaffAvailability(availabilityData)) {
@@ -260,8 +272,10 @@ export async function handleDeleteAvailabilityByDate(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const targetDate   : string = d.params?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const targetDate   : string = readString(params, "date") ?? '';
 
     if (targetStaffID.trim() === "" || targetDate.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or availability date.").unwrap(d.set);
@@ -296,8 +310,10 @@ export async function handleGetAvailabilityByDateAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
-    const targetDate   : string = d.params?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
+    const targetDate   : string = readString(params, "date") ?? '';
 
     if (targetStaffID.trim() === "" || targetDate.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or availability date.").unwrap(d.set);
@@ -329,7 +345,10 @@ export async function handleDeleteAvailabilityByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -360,8 +379,11 @@ export async function handleDeleteAvailabilityByDateAndStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? d.body?.staffID ?? '';
-    const targetDate   : string = d.params?.date ?? d.body?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? readString(body, "staffID") ?? '';
+    const targetDate   : string = readString(params, "date") ?? readString(body, "date") ?? '';
 
     if (targetStaffID.trim() === "" || targetDate.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or availability date.").unwrap(d.set);

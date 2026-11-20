@@ -1,5 +1,7 @@
-import { Type, Static } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { Type } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
+
+import { compileSchema, UUIDSchema } from "@model:common";
 
 export const AccountStatusSchema = Type.Union([
     Type.Literal("active"),
@@ -8,17 +10,17 @@ export const AccountStatusSchema = Type.Union([
 ]);
 
 export const LoginCredentialsSchema = Type.Object({
-    staffID     : Type.String({ format: "uuid" }),
-    username    : Type.String({ minLength: 1, maxLength: 20 }),
-    passwordHash: Type.String(),
+    staffID     : UUIDSchema,
+    username    : Type.String({ minLength: 1, maxLength: 20, pattern: "^[a-z0-9._\\-]+$" }),
+    passwordHash: Type.String({ minLength: 1, maxLength: 255 }),
     status      : AccountStatusSchema
 });
 
-export type Login = Static<typeof LoginCredentialsSchema>;
-export type AccountStatus    = Static<typeof AccountStatusSchema>;
+export type Login         = Static<typeof LoginCredentialsSchema>;
+export type AccountStatus = Static<typeof AccountStatusSchema>;
 
-const checkLoginCredentials = TypeCompiler.Compile(LoginCredentialsSchema);
-const checkAccountStatus    = TypeCompiler.Compile(AccountStatusSchema);
+const checkLoginCredentials = compileSchema(LoginCredentialsSchema);
+const checkAccountStatus    = compileSchema(AccountStatusSchema);
 
-export const validateLoginCredentials = (v: unknown): v is Login => checkLoginCredentials.Check(v);
-export const validateAccountStatus    = (v: unknown): v is AccountStatus    => checkAccountStatus.Check(v);
+export const validateLoginCredentials = (value: unknown): value is Login => checkLoginCredentials.Check(value);
+export const validateAccountStatus    = (value: unknown): value is AccountStatus => checkAccountStatus.Check(value);

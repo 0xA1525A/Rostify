@@ -3,6 +3,7 @@ import type { Nullable }   from "@lib:types/nullable";
 import type { Fn }         from "@lib:types/fn";
 import type { Result }     from "@lib:templates/result";
 import type { ServiceDependencies }             from "@lib:templates/service_deps";
+import { readBoolean, readNullableString, readString, toRecord } from "@lib:templates/request_values";
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 
 import {
@@ -20,7 +21,6 @@ import { validateAccessPermission } from "@service:permission/permission";
 import {
     type StaffPreview,
     type Staff,
-    type StaffPrivilege,
          validateStaff,
 } from "@model:staff";
 
@@ -42,7 +42,9 @@ export async function handleGetAllStaffPreviews(d: ServiceDependencies): Promise
 }
 
 export async function handleGetStaffByStaffID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID in URL.").unwrap(d.set);
@@ -65,13 +67,15 @@ export async function handleGetStaffByStaffID(d: ServiceDependencies): Promise<R
 }
 
 export async function handleSearchStaffPreviewsByAnyName(d: ServiceDependencies): Promise<RFServerResponse> {
+    const params: Record<string, unknown> = toRecord(d.params);
+
     const permissionResult: Result<string> = await validateAccessPermission(d.sql, d.headers, "manager", false);
 
     if (!permissionResult.isSuccess()) {
         return new Response(false, HTTPStatus.UNAUTHORISED, "Insufficient permission.").unwrap(d.set);
     }
 
-    const searchKeyword: string = d.params.names ?? '';
+    const searchKeyword: string = readString(params, "names") ?? '';
 
     if (searchKeyword.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Search type and keyword is required.").unwrap(d.set);
@@ -127,36 +131,37 @@ export async function handleCreateStaff(d: ServiceDependencies): Promise<RFServe
         return new Response(false, HTTPStatus.UNAUTHORISED, "Insufficient permission.").unwrap(d.set);
     }
 
-    const nickname   : string           = d.body?.nickname    ?? '';
-    const firstName  : string           = d.body?.firstName   ?? '';
-    const middleName : Nullable<string> = d.body?.middleName  ?? null;
-    const lastName   : string           = d.body?.lastName    ?? '';
-    const dateOfBirth: string           = d.body?.dateOfBirth ?? '';
-    const isFullTime : boolean          = d.body?.isFullTime  ?? '';
-    const privilege  : StaffPrivilege   = d.body?.privilege   ?? ''
+    const body: Record<string, unknown> = toRecord(d.body);
 
-    const staffInfo: Staff = {
-        id         : crypto.randomUUID(), // Just a placeholder UUID. The real one is generated on the postgres.
+    const nickname   : string           = readString(body, "nickname") ?? '';
+    const firstName  : string           = readString(body, "firstName") ?? '';
+    const middleName : Nullable<string> = readNullableString(body, "middleName") ?? null;
+    const lastName   : string           = readString(body, "lastName") ?? '';
+    const dateOfBirth: string           = readString(body, "dateOfBirth") ?? '';
+    const privilege  : string           = readString(body, "privilege") ?? '';
+
+    const staffInfo: unknown = {
+        id         : crypto.randomUUID(),
         nickname   : nickname,
         firstName  : firstName,
         middleName : middleName,
         lastName   : lastName,
         dateOfBirth: dateOfBirth,
-        isFullTime : isFullTime,
+        isFullTime : readBoolean(body, "isFullTime") ?? '',
         privilege  : privilege
     };
 
-    const validateStaffInfo: boolean = validateStaff(staffInfo);
-
-    if (!validateStaffInfo) {
+    if (!validateStaff(staffInfo)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid staff information.").unwrap(d.set);
     }
+
+    const validStaffInfo: Staff = staffInfo;
 
     if (privilege === "manager") {
         return new Response(false, HTTPStatus.FORBIDDEN, "You cannot create manager.").unwrap(d.set);
     }
 
-    const createStaffResult: Result<string>   = await createStaff(d.sql, staffInfo);
+    const createStaffResult: Result<string>   = await createStaff(d.sql, validStaffInfo);
     const newStaffID       : Nullable<string> = createStaffResult.getData();
 
     if (!createStaffResult.isSuccess() || newStaffID === null) {
@@ -167,7 +172,10 @@ export async function handleCreateStaff(d: ServiceDependencies): Promise<RFServe
 }
 
 export async function handleUpdateStaff(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -186,33 +194,35 @@ export async function handleUpdateStaff(d: ServiceDependencies): Promise<RFServe
         return new Response(false, HTTPStatus.NOT_FOUND, "Staff not found.").unwrap(d.set);
     }
 
-    const newStaffInfo: Staff = {
+    const newStaffInfo: unknown = {
         id         : targetStaffID,
-        nickname   : d.body?.nickname    ?? oldStaffInfo.nickname,
-        firstName  : d.body?.firstName   ?? oldStaffInfo.firstName,
-        middleName : d.body?.middleName  ?? oldStaffInfo.middleName,
-        lastName   : d.body?.lastName    ?? oldStaffInfo.lastName,
-        dateOfBirth: d.body?.dateOfBirth ?? oldStaffInfo.dateOfBirth,
-        isFullTime : d.body?.isFullTime  ?? oldStaffInfo.isFullTime,
-        privilege  : d.body?.privilege   ?? oldStaffInfo.privilege
+        nickname   : readString(body, "nickname") ?? oldStaffInfo.nickname,
+        firstName  : readString(body, "firstName") ?? oldStaffInfo.firstName,
+        middleName : readNullableString(body, "middleName") ?? oldStaffInfo.middleName,
+        lastName   : readString(body, "lastName") ?? oldStaffInfo.lastName,
+        dateOfBirth: readString(body, "dateOfBirth") ?? oldStaffInfo.dateOfBirth,
+        isFullTime : readBoolean(body, "isFullTime") ?? oldStaffInfo.isFullTime,
+        privilege  : readString(body, "privilege") ?? oldStaffInfo.privilege
     };
 
     if (!validateStaff(newStaffInfo)) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Invalid staff information.").unwrap(d.set);
     }
 
-    if (newStaffInfo.privilege === "manager" && oldStaffInfo.privilege !== "manager") {
+    const validStaffInfo: Staff = newStaffInfo;
+
+    if (validStaffInfo.privilege === "manager" && oldStaffInfo.privilege !== "manager") {
         return new Response(false, HTTPStatus.FORBIDDEN, "You cannot promote staff to manager.").unwrap(d.set);
     }
 
     const staffInfoToUpdate: Omit<Staff, "id"> = {
-        nickname   : newStaffInfo.nickname,
-        firstName  : newStaffInfo.firstName,
-        middleName : newStaffInfo.middleName,
-        lastName   : newStaffInfo.lastName,
-        dateOfBirth: newStaffInfo.dateOfBirth,
-        isFullTime : newStaffInfo.isFullTime,
-        privilege  : newStaffInfo.privilege
+        nickname   : validStaffInfo.nickname,
+        firstName  : validStaffInfo.firstName,
+        middleName : validStaffInfo.middleName,
+        lastName   : validStaffInfo.lastName,
+        dateOfBirth: validStaffInfo.dateOfBirth,
+        isFullTime : validStaffInfo.isFullTime,
+        privilege  : validStaffInfo.privilege
     };
 
     const updateStaffResult: Result<Staff>   = await updateStaffByStaffID(d.sql, targetStaffID, staffInfoToUpdate);
@@ -226,7 +236,9 @@ export async function handleUpdateStaff(d: ServiceDependencies): Promise<RFServe
 }
 
 export async function handleDeleteStaffByID(d: ServiceDependencies): Promise<RFServerResponse> {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);

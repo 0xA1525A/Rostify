@@ -1,10 +1,13 @@
 import { SQL } from "bun";
 
 import type { AccountStatus, Login } from "@model:logins";
+import type { LoginPreview } from "@model:relations";
+import { validateLoginPreview } from "@model:relations";
+import      { validateLoginCredentials } from "@model:logins";
 import      { Result }               from "@lib:templates/result";
 
-export async function getAllLogins(sql: SQL): Promise<Result<Array<Omit<Login, "passwordHash">>>> {
-    type R = Array<Omit<Login, "passwordHash">>;
+export async function getAllLogins(sql: SQL): Promise<Result<Array<LoginPreview>>> {
+    type R = Array<LoginPreview>;
 
     const result: R = await sql`
         SELECT  staff_id    AS "staffID",
@@ -15,6 +18,10 @@ export async function getAllLogins(sql: SQL): Promise<Result<Array<Omit<Login, "
     `;
 
     if (result.length === 0) {
+        return new Result<R>(false, null);
+    }
+
+    if (!result.every(validateLoginPreview)) {
         return new Result<R>(false, null);
     }
 
@@ -44,7 +51,13 @@ async function getLoginBy(sql: SQL, column: string, value: string): Promise<Resu
         return new Result<Login>(false, null);
     }
 
-    return new Result<Login>(true, result[0] as Login);
+    const first: unknown = result[0];
+
+    if (!validateLoginCredentials(first)) {
+        return new Result<Login>(false, null);
+    }
+
+    return new Result<Login>(true, first);
 }
 
 export async function getLoginByUsername(sql: SQL, username: string): Promise<Result<Login>> {
@@ -115,7 +128,13 @@ export async function updateLoginByID(
         return new Result<Login>(false, null);
     }
 
-    return new Result<Login>(true, result[0]);
+    const first: unknown = result[0];
+
+    if (!validateLoginCredentials(first)) {
+        return new Result<Login>(false, null);
+    }
+
+    return new Result<Login>(true, first);
 }
 
 export async function deleteLoginByStaffID(sql: SQL, staffID: string): Promise<Result<string>> {

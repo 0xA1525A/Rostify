@@ -2,6 +2,7 @@ import      { HTTPStatus } from "@lib:enums/http_status";
 import      { Response, type RFServerResponse } from "@lib:templates/response";
 import      { Result } from "@lib:templates/result";
 import type { ServiceDependencies } from "@lib:templates/service_deps";
+import { readInteger, readString, toRecord } from "@lib:templates/request_values";
 import type { Nullable }   from "@lib:types/nullable";
 
 import { validateAccessPermission } from "@service:permission/permission";
@@ -40,7 +41,9 @@ export async function handleGetStaffRelationsToAllStaffByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -66,7 +69,9 @@ export async function handleDeleteStaffRelationToAllStaffByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const targetStaffID: string = readString(params, "staffID") ?? '';
 
     if (targetStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -91,7 +96,9 @@ export async function handleDeleteAllStaffRelationsToStaffByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const relatedStaffID: string = d.params?.staffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+
+    const relatedStaffID: string = readString(params, "staffID") ?? '';
 
     if (relatedStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID.").unwrap(d.set);
@@ -116,9 +123,12 @@ export async function handleSetStaffRelationToStaff(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID : string = d.params?.staffID ?? '';
-    const relatedStaffID: string = d.params?.relatedStaffID ?? d.body?.relatedStaffID ?? d.body?.staffID ?? '';
-    const preference    : number = d.body?.preference;
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID : string = readString(params, "staffID") ?? '';
+    const relatedStaffID: string = readString(params, "relatedStaffID") ?? readString(body, "relatedStaffID") ?? readString(body, "staffID") ?? '';
+    const preference    : number = readInteger(body, "preference") ?? Number.NaN;
 
     if (targetStaffID.trim() === "" || relatedStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or related staff ID.").unwrap(d.set);
@@ -161,8 +171,11 @@ export async function handleUnsetStaffRelationToStaffByStaffID(
     d: ServiceDependencies
 ): Promise<RFServerResponse>
 {
-    const targetStaffID : string = d.params?.staffID ?? '';
-    const relatedStaffID: string = d.params?.relatedStaffID ?? d.body?.relatedStaffID ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const body  : Record<string, unknown> = toRecord(d.body);
+
+    const targetStaffID : string = readString(params, "staffID") ?? '';
+    const relatedStaffID: string = readString(params, "relatedStaffID") ?? readString(body, "relatedStaffID") ?? '';
 
     if (targetStaffID.trim() === "" || relatedStaffID.trim() === "") {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing staff ID or related staff ID.").unwrap(d.set);

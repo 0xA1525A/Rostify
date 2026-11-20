@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-import type { Fn } from "@lib:types/fn";
+import { toRouteHandler } from "@lib:templates/route_handler";
 import {
     handleCreatePositionConflict,
     handleDeleteAllPositionConflicts,
@@ -12,17 +12,15 @@ import {
     handleUpdatePositionConflict
 } from "@service:business/position_conflicts";
 
-type F = Fn<[unknown], unknown>;
-
 export const positionConflictRoutes = new Elysia({ prefix: "/position-conflicts" })
-    .get("/", handleGetAllPositionConflicts as F)
-    .get("/from/:positionAID", handleGetConflictsFromPosition as F)
-    .get("/to/:positionBID", handleGetConflictsToPosition as F)
-    .get("/:positionAID/:positionBID", handleGetPositionConflictByIDs as F)
+    .get("/", toRouteHandler(handleGetAllPositionConflicts))
+    .get("/from/:positionAID", toRouteHandler(handleGetConflictsFromPosition))
+    .get("/to/:positionBID", toRouteHandler(handleGetConflictsToPosition))
+    .get("/:positionAID/:positionBID", toRouteHandler(handleGetPositionConflictByIDs))
 
-    .post("/", handleCreatePositionConflict as F)
+    .post("/", toRouteHandler(handleCreatePositionConflict))
 
-    .patch("/:positionAID/:positionBID", handleUpdatePositionConflict as F)
+    .patch("/:positionAID/:positionBID", toRouteHandler(handleUpdatePositionConflict))
 
-    .delete("/", handleDeleteAllPositionConflicts as F)
-    .delete("/:positionAID/:positionBID", handleDeletePositionConflictByIDs as F);
+    .delete("/", toRouteHandler(handleDeleteAllPositionConflicts))
+    .delete("/:positionAID/:positionBID", toRouteHandler(handleDeletePositionConflictByIDs));

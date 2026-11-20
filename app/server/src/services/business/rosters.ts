@@ -2,6 +2,7 @@ import { HTTPStatus } from "@lib:enums/http_status";
 import { Response, type RFServerResponse } from "@lib:templates/response";
 import { Result } from "@lib:templates/result";
 import type { ServiceDependencies } from "@lib:templates/service_deps";
+import { readString, toRecord } from "@lib:templates/request_values";
 import type { Nullable } from "@lib:types/nullable";
 
 import {
@@ -45,13 +46,15 @@ type DateGuard = {
 };
 
 function getDateParam(d: ServiceDependencies): Nullable<string> {
-    const date: string = d.params?.date ?? '';
+    const params: Record<string, unknown> = toRecord(d.params);
+    const date  : string                  = readString(params, "date") ?? '';
 
     return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }
 
 function getStaffIDParam(d: ServiceDependencies): Nullable<string> {
-    const staffID: string = d.params?.staffID ?? '';
+    const params : Record<string, unknown> = toRecord(d.params);
+    const staffID: string                  = readString(params, "staffID") ?? '';
 
     return staffID.trim() === '' ? null : staffID;
 }
@@ -191,7 +194,8 @@ export async function handleMoveStaffRoster(d: ServiceDependencies): Promise<RFS
         return new Response(false, HTTPStatus.FORBIDDEN, guard.message).unwrap(d.set);
     }
 
-    const shiftID: number = Number(d.body?.shiftID);
+    const body   : Record<string, unknown> = toRecord(d.body);
+    const shiftID: number                  = Number(body.shiftID);
 
     if (!Number.isInteger(shiftID) || shiftID < 1) {
         return new Response(false, HTTPStatus.BAD_REQUEST, "Missing or invalid shift ID.").unwrap(d.set);
